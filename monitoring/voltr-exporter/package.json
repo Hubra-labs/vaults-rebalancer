@@ -1,0 +1,14 @@
+{
+  "name": "voltr-exporter",
+  "version": "1.0.0",
+  "description": "Prometheus exporter for Voltr vault metrics",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "prom-client": "^15.1.0"
+  }
+}
