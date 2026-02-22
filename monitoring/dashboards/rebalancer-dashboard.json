@@ -10,7 +10,7 @@
   "liveNow": false,
   "panels": [
     {
-      "type": "stat",
+      "type": "table",
       "title": "\ud83d\udd11 Vault Address",
       "gridPos": {
         "h": 4,
@@ -36,24 +36,32 @@
               }
             ]
           },
-          "mappings": [],
-          "noValue": "Select a vault"
+          "custom": {
+            "align": "center",
+            "displayMode": "auto"
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Asset"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
       },
       "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "horizontal",
-        "textMode": "value",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "showHeader": false,
+        "cellHeight": "lg",
+        "footer": {
+          "show": false
+        }
       },
       "targets": [
         {
@@ -62,8 +70,31 @@
             "uid": "prometheus"
           },
           "expr": "voltr_vault_info{asset=~\"$asset\"}",
-          "legendFormat": "{{vault_address}}",
-          "refId": "A"
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "asset",
+                "vault_address"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "vault_address": "Vault Address",
+              "asset": "Asset"
+            }
+          }
         }
       ]
     },
