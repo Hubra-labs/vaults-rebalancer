@@ -5,33 +5,45 @@ import { StrategyConfig, strategyRegistry } from "./strategy-config";
 
 const YIELD_MARKETS_URL = config.yieldMarketsUrl;
 
+/**
+ * Hubra Playbook API response format
+ */
 export interface YieldMarket {
-  id: string;
-  // Full format (Dial API)
-  provider?: { id: string; name: string };
-  token?: { address: string; symbol: string; decimals: number };
-  totalDepositUsd?: number;
-  totalDeposit?: number;
-  // Common fields
+  id: string; // e.g., "kamino.lend.BEEfo7..." or "jupiter.earn.USDS"
   depositApy: number;
   baseDepositApy?: number;
+  baseDepositApy30d?: number;
+  baseDepositApy90d?: number;
+  baseDepositApy180d?: number;
+  token: {
+    address: string;
+    symbol: string;
+    decimals: number;
+    icon?: string;
+  };
   additionalData: {
     vaultAddress?: string;
     vaultName?: string;
-    shareToken?: { address: string; symbol: string };
+    vaultRiskProfile?: string;
+    vaultSlug?: string;
+    shareToken?: {
+      address: string;
+      symbol: string;
+      decimals: number;
+    };
   };
-  type?: string;
-  assetGroup?: string;
+  // Optional fields (may be present in full API responses)
+  provider?: { id: string; name: string };
+  totalDepositUsd?: number;
+  totalDeposit?: number;
   rewards?: Array<{
     apy: number;
     token: { address: string; symbol: string };
   }>;
-}
-
-// Legacy Dial API response format
-interface DialApiResponse {
-  markets: YieldMarket[];
-  cursor: string | null;
+  type?: string;
+  assetGroup?: string;
+  productName?: string;
+  websiteUrl?: string;
 }
 
 export interface MatchedMarket {
@@ -51,10 +63,8 @@ function extractProviderId(marketId: string): string {
 }
 
 /**
- * Fetches yield markets from the configured API.
- * Supports both:
- * - Hubra Playbook API (direct array response, minimal fields)
- * - Legacy Dial API ({ markets: [...], cursor }, full fields)
+ * Fetches yield markets from the Hubra Playbook API.
+ * Filters results by the specified asset mint address.
  */
 export async function fetchYieldMarkets(
   assetMint: string
@@ -74,28 +84,14 @@ export async function fetchYieldMarkets(
       throw new Error(`Yield API returned ${response.status}`);
     }
 
-    const data = await response.json();
+    const markets: YieldMarket[] = await response.json();
 
-    // Handle both response formats:
-    // - Hubra Playbook: direct array [...]
-    // - Legacy Dial: { markets: [...], cursor }
-    const markets: YieldMarket[] = Array.isArray(data) ? data : data.markets;
-
-    if (!markets) {
-      throw new Error("Invalid API response: no markets found");
+    if (!Array.isArray(markets)) {
+      throw new Error("Invalid API response: expected array");
     }
 
-    // For Hubra Playbook API, we can't filter by token address
-    // because the token field is not present. Return all markets
-    // and let matchMarketsToStrategies handle filtering by vault address.
-    let filtered: YieldMarket[];
-    if (markets.length > 0 && markets[0].token?.address) {
-      // Full format - filter by token address
-      filtered = markets.filter((m) => m.token?.address === assetMint);
-    } else {
-      // Minimal format - return all, we'll match by vault address
-      filtered = markets;
-    }
+    // Filter by token address
+    const filtered = markets.filter((m) => m.token?.address === assetMint);
 
     workerMetrics.inc("yield_api_calls_total", { status: "success" });
     workerMetrics.observe(
@@ -104,8 +100,8 @@ export async function fetchYieldMarkets(
     );
 
     logger.debug(
-      { total: markets.length, forAsset: filtered.length },
-      "Fetched yield markets from API"
+      { total: markets.length, forAsset: filtered.length, assetMint },
+      "Fetched yield markets from Playbook API"
     );
     return filtered;
   } catch (error) {
@@ -207,18 +203,21 @@ export function selectWinner(
     return null;
   }
 
+  // Sort by APY descending
   dilutionFiltered.sort((a, b) => b.market.depositApy - a.market.depositApy);
 
   const winner = dilutionFiltered[0];
-  const providerId =
-    winner.market.provider?.name || extractProviderId(winner.market.id);
+  const providerId = extractProviderId(winner.market.id);
+  const providerName = winner.market.provider?.name || providerId;
 
   logger.info(
     {
       strategyId: winner.strategy.id,
+      marketId: winner.market.id,
       apy: winner.market.depositApy,
       tvl: winner.market.totalDepositUsd ?? "N/A",
-      provider: providerId,
+      provider: providerName,
+      token: winner.market.token.symbol,
     },
     "Selected yield winner"
   );
