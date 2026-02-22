@@ -3,7 +3,6 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  # Rebalancer services (running on host)
   - job_name: "rebalancer"
     static_configs:
       - targets: ["host.docker.internal:8080"]
@@ -22,8 +21,7 @@ scrape_configs:
         labels:
           asset: "usdt"
 
-  # Voltr API exporter (running in Docker)
   - job_name: "voltr"
-    scrape_interval: 60s  # API data doesn't change frequently
+    scrape_interval: 60s
     static_configs:
       - targets: ["voltr-exporter:9101"]

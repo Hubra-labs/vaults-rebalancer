@@ -4,12 +4,13 @@ services:
     image: voltr-exporter:latest
     ports:
       - "127.0.0.1:9101:9101"
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://localhost:9101/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:9101/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:latest
@@ -20,8 +21,6 @@ services:
       - prometheus_data:/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      - voltr-exporter
     restart: unless-stopped
 
   grafana:
@@ -34,9 +33,9 @@ services:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
       - GF_AUTH_DISABLE_SIGNOUT_MENU=true
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/rebalancer-dashboard.json
       - GF_SERVER_ROOT_URL=https://falcon.hubra.app/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/rebalancer-dashboard.json
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./dashboards:/etc/grafana/dashboards:ro

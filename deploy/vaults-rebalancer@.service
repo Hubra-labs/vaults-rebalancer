@@ -12,7 +12,7 @@ EnvironmentFile=/home/copilot/vaults-rebalancer/.env
 EnvironmentFile=/home/copilot/vaults-rebalancer/.env-%i
 Environment=ENV_FILE=.env-%i
 
-ExecStart=/usr/bin/node dist/index.js
+ExecStart=/usr/bin/node dist/src/index.js
 
 Restart=on-failure
 RestartSec=5

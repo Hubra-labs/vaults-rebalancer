@@ -6,7 +6,6 @@ providers:
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
-    allowUiUpdates: false
     options:
       path: /etc/grafana/dashboards
       foldersFromFilesStructure: false
