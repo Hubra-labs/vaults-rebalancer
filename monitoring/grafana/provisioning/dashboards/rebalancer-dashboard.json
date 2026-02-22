@@ -1,1974 +1,1631 @@
 {
-    "__inputs": [
-      {
-        "name": "DS_PROMETHEUS",
-        "label": "Prometheus",
-        "description": "Prometheus datasource for Vault Rebalancer metrics",
-        "type": "datasource",
-        "pluginId": "prometheus",
-        "pluginName": "Prometheus"
-      }
-    ],
-    "__requires": [
-      {
-        "type": "grafana",
-        "id": "grafana",
-        "name": "Grafana",
-        "version": "9.0.0"
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Vault Address",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
       },
-      {
-        "type": "datasource",
-        "id": "prometheus",
-        "name": "Prometheus",
-        "version": "1.0.0"
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      {
-        "type": "panel",
-        "id": "timeseries",
-        "name": "Time series",
-        "version": ""
-      },
-      {
-        "type": "panel",
-        "id": "stat",
-        "name": "Stat",
-        "version": ""
-      },
-      {
-        "type": "panel",
-        "id": "gauge",
-        "name": "Gauge",
-        "version": ""
-      }
-    ],
-    "id": null,
-    "uid": null,
-    "title": "Vault Rebalancer",
-    "description": "Monitoring dashboard for the Hubra Vault Rebalancer service",
-    "tags": [
-      "vault",
-      "rebalancer",
-      "hubra"
-    ],
-    "timezone": "browser",
-    "editable": true,
-    "graphTooltip": 1,
-    "refresh": "30s",
-    "schemaVersion": 38,
-    "fiscalYearStartMonth": 0,
-    "liveNow": false,
-    "style": "dark",
-    "time": {
-      "from": "now-6h",
-      "to": "now"
-    },
-    "timepicker": {},
-    "templating": {
-      "list": [
-        {
-          "current": {
-            "selected": false,
-            "text": "All",
-            "value": "$__all"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Select a vault"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "definition": "label_values(asset)",
-          "includeAll": true,
-          "multi": false,
-          "name": "asset",
-          "label": "Vault",
-          "query": {
-            "query": "label_values(asset)",
-            "refId": "StandardVariableQuery"
-          },
-          "refresh": 1,
-          "sort": 1,
-          "type": "query"
+          "expr": "voltr_vault_info{asset=~\"$asset\"}",
+          "legendFormat": "{{vault_address}}",
+          "refId": "A"
         }
       ]
     },
-    "annotations": {
-      "list": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 100,
+      "panels": [],
+      "title": "\ud83d\udcca Overview",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
         {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
+          "expr": "sum(voltr_vault_tvl_usd)",
+          "legendFormat": "Total TVL",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "\ud83d\udcb0 Total TVL",
+      "type": "stat"
     },
-    "panels": [
-      {
-        "type": "row",
-        "title": "Financial",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
-        "collapsed": false,
-        "panels": []
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      {
-        "type": "stat",
-        "title": "Vault Total Value",
-        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            },
-            "unit": "currencyUSD",
-            "mappings": []
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(vault_total_value{asset=~\"$asset\"})",
-            "legendFormat": "Total Value",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Vault Idle Balance",
-        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 1000 },
-                { "color": "red", "value": 10000 }
-              ]
-            },
-            "unit": "currencyUSD",
-            "mappings": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
           },
-          "overrides": []
+          "unit": "currencyUSD"
         },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(vault_idle_balance{asset=~\"$asset\"})",
-            "legendFormat": "Idle Balance",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Strategy Position Value",
-        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "USD",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(voltr_idle_funds_usd)",
+          "legendFormat": "Idle Funds",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udca4 Idle Funds",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "green",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "avg(voltr_vault_apy_percent{period=\"1d\"})",
+          "legendFormat": "Avg APY",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udcc8 Avg APY (1d)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(rebalance_total[24h]))",
+          "legendFormat": "Rebalances (24h)",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udd04 Rebalances (24h)",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 101,
+      "panels": [],
+      "title": "\ud83d\udcc8 Performance",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "unit": "currencyUSD",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
         },
-        "options": {
-          "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "strategy_position_value{asset=~\"$asset\"}",
-            "legendFormat": "{{asset}} {{strategy_type}}",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Strategy Target Value",
-        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "USD",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "voltr_vault_tvl_usd{asset=~\"$asset\"}",
+          "legendFormat": "{{asset}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udcb0 TVL by Vault",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "unit": "currencyUSD",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "strategy_target_value{asset=~\"$asset\"}",
-            "legendFormat": "{{asset}} {{strategy_type}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "row",
-        "title": "Rebalance Decisions",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
-        "collapsed": false,
-        "panels": []
-      },
-      {
-        "type": "stat",
-        "title": "Total Rebalances",
-        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            },
-            "mappings": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          "overrides": []
+          "unit": "percent"
         },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(rebalance_total{asset=~\"$asset\"})",
-            "legendFormat": "Total",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Rebalance Rate by Trigger",
-        "gridPos": { "h": 8, "w": 8, "x": 4, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "rebalances/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "voltr_vault_apy_percent{asset=~\"$asset\", period=\"1d\"}",
+          "legendFormat": "{{asset}} (1d)",
+          "refId": "A"
+        },
+        {
+          "expr": "voltr_vault_apy_percent{asset=~\"$asset\", period=\"7d\"}",
+          "legendFormat": "{{asset}} (7d)",
+          "refId": "B"
+        }
+      ],
+      "title": "\ud83d\udcc8 APY by Vault",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 102,
+      "panels": [],
+      "title": "\ud83d\udd04 Rebalancing Activity",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(rebalance_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{trigger}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Rebalance Errors",
-        "gridPos": { "h": 4, "w": 4, "x": 12, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "red", "value": 1 }
-              ]
-            },
-            "mappings": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          "overrides": []
+          "unit": "short"
         },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(rebalance_errors_total{asset=~\"$asset\"})",
-            "legendFormat": "Errors",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Fallbacks by Reason",
-        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "id": 20,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "increase(rebalance_total{asset=~\"$asset\"}[1h])",
+          "legendFormat": "{{asset}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udd04 Rebalances per Hour",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 19
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(rebalance_errors_total[24h]))",
+          "legendFormat": "Errors",
+          "refId": "A"
+        }
+      ],
+      "title": "\u274c Errors (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 19
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(rebalance_duration_seconds_bucket[1h])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ],
+      "title": "\u23f1\ufe0f Rebalance Duration (p95)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 90
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 23
+      },
+      "id": 23,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "1 - (sum(increase(rebalance_errors_total[24h])) / sum(increase(rebalance_total[24h])))",
+          "legendFormat": "Success Rate",
+          "refId": "A"
+        }
+      ],
+      "title": "\u2705 Success Rate (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 23
+      },
+      "id": 24,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(tx_total{type=\"rebalance\", status=\"success\"}[24h]))",
+          "legendFormat": "Transactions",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udcdd Transactions (24h)",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 103,
+      "panels": [],
+      "title": "\ud83c\udfe6 Pool Allocations",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             }
           },
-          "overrides": []
+          "mappings": [],
+          "unit": "currencyUSD"
         },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rebalance_fallback_total{asset=~\"$asset\"}",
-            "legendFormat": "{{asset}} {{reason}}",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "gauge",
-        "title": "Yield Winner APY",
-        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 14 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "red", "value": null },
-                { "color": "yellow", "value": 0.05 },
-                { "color": "green", "value": 0.1 }
-              ]
-            },
-            "unit": "percentunit",
-            "min": 0,
-            "max": 1,
-            "mappings": []
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
+      "id": 30,
+      "options": {
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(10, voltr_pool_allocation_usd{asset=~\"$asset\"} > 0)",
+          "legendFormat": "{{asset}} | {{vault_address}} | {{org}} - {{strategy}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83e\udd67 Current Allocation",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
           },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "max(yield_winner_apy{asset=~\"$asset\"})",
-            "legendFormat": "Best APY",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Yield Winner TVL",
-        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 14 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "unit": "currencyUSD",
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "none",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "max(yield_winner_tvl{asset=~\"$asset\"})",
-            "legendFormat": "TVL",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Rebalance Duration (p50, p95, p99)",
-        "gridPos": { "h": 8, "w": 16, "x": 8, "y": 14 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "seconds",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
             },
-            "unit": "s",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(rebalance_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p50",
-            "refId": "A"
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(rebalance_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p95",
-            "refId": "B"
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 8,
+        "y": 28
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(5, voltr_pool_allocation_usd{asset=~\"$asset\"})",
+          "legendFormat": "{{asset}} | {{vault_address}} | {{org}} - {{strategy}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udcca Pool Allocation Over Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 104,
+      "panels": [],
+      "title": "\ud83d\udcb8 Costs & Fees",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
           },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.99, sum(rate(rebalance_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p99",
-            "refId": "C"
-          }
-        ]
-      },
-      {
-        "type": "row",
-        "title": "Transactions",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
-        "collapsed": false,
-        "panels": []
-      },
-      {
-        "type": "timeseries",
-        "title": "Transaction Rate by Type & Status",
-        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "tx/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
         },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(tx_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{type}} / {{status}}",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Transaction Duration by Type (p50, p95)",
-        "gridPos": { "h": 8, "w": 6, "x": 6, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "seconds",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "id": 40,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(tx_compute_units_sum{type=\"unknown\"}[5m]) / rate(tx_compute_units_count{type=\"unknown\"}[5m])",
+          "legendFormat": "Compute Units",
+          "refId": "A"
+        }
+      ],
+      "title": "\u26a1 Compute Units per TX",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "unit": "s",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(tx_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p50",
-            "refId": "A"
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(tx_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p95",
-            "refId": "B"
-          }
-        ]
+          "unit": "short"
+        },
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Transaction Compute Units by Type",
-        "gridPos": { "h": 8, "w": 6, "x": 12, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "CU",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 37
+      },
+      "id": 41,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(tx_priority_fee_sum[5m]) / rate(tx_priority_fee_count[5m])",
+          "legendFormat": "Priority Fee (\u00b5Lamports)",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udcb0 Priority Fee per TX",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 105,
+      "panels": [],
+      "title": "\ud83c\udfaf Yield Winners",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 44
+      },
+      "id": 50,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "yield_winner_apy{asset=~\"$asset\"} * 100",
+          "legendFormat": "{{asset}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83c\udfc6 Best APY per Vault",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(tx_compute_units_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p50",
-            "refId": "A"
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(tx_compute_units_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p95",
-            "refId": "B"
-          }
-        ]
+          "unit": "percent"
+        },
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Transaction Priority Fee by Type",
-        "gridPos": { "h": 8, "w": 6, "x": 18, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "fee",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
+      "gridPos": {
+        "h": 6,
+        "w": 16,
+        "x": 8,
+        "y": 44
+      },
+      "id": 51,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "yield_winner_apy{asset=~\"$asset\"} * 100",
+          "legendFormat": "{{asset}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udcca Best APY Over Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 50
+      },
+      "id": 106,
+      "panels": [],
+      "title": "\ud83d\udd27 System Health",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "OK"
+                }
+              },
+              "type": "value"
             },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
+            {
+              "options": {
+                "from": 1,
+                "result": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "RESTARTED"
+                },
+                "to": 999
+              },
+              "type": "range"
             }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
           },
-          "overrides": []
+          "unit": "short"
         },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(tx_priority_fee_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(tx_priority_fee_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p95",
-            "refId": "B"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "row",
-        "title": "System Health",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
-        "collapsed": false,
-        "panels": []
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 51
       },
-      {
-        "type": "timeseries",
-        "title": "Loop Iterations Rate",
-        "gridPos": { "h": 8, "w": 5, "x": 0, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "iter/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
+      "id": 60,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(loop_iterations_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{loop}}",
-            "refId": "A"
-          }
-        ]
+        "textMode": "auto"
       },
-      {
-        "type": "timeseries",
-        "title": "Loop Errors Rate",
-        "gridPos": { "h": 8, "w": 5, "x": 5, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "errors/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "red", "value": 0.01 }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(loop_errors_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{loop}}",
-            "refId": "A"
-          }
-        ]
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "worker_restarts{asset=~\"$asset\"}",
+          "legendFormat": "{{asset}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\ud83d\udd04 Worker Restarts",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      {
-        "type": "timeseries",
-        "title": "Yield API Call Rate",
-        "gridPos": { "h": 8, "w": 5, "x": 10, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "calls/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
-          "overrides": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
         },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(yield_api_calls_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{status}}",
-            "refId": "A"
-          }
-        ]
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Yield API Duration (p50, p95)",
-        "gridPos": { "h": 8, "w": 5, "x": 15, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "seconds",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "unit": "s",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(yield_api_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(yield_api_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p95",
-            "refId": "B"
-          }
-        ]
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 51
       },
-      {
-        "type": "stat",
-        "title": "Worker Restarts",
-        "gridPos": { "h": 4, "w": 4, "x": 20, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 1 },
-                { "color": "red", "value": 5 }
-              ]
-            },
-            "mappings": []
+      "id": 61,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(voltr_scrape_errors_total[1h])) by (asset)",
+          "legendFormat": "{{asset}}",
+          "refId": "A"
+        }
+      ],
+      "title": "\u26a0\ufe0f API Scrape Errors (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
-          "overrides": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "s"
         },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 51
+      },
+      "id": 62,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(worker_restarts{asset=~\"$asset\"})",
-            "legendFormat": "Restarts",
-            "refId": "A"
-          }
-        ]
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "voltr_scrape_duration_seconds",
+          "legendFormat": "Scrape Duration",
+          "refId": "A"
+        }
+      ],
+      "title": "\u23f1\ufe0f Voltr API Scrape Time",
+      "type": "stat"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "vault",
+    "rebalancer",
+    "hubra",
+    "voltr"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(voltr_vault_tvl_usd, asset)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Vault",
+        "multi": true,
+        "name": "asset",
+        "options": [],
+        "query": {
+          "query": "label_values(voltr_vault_tvl_usd, asset)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
       }
     ]
-  }
-  🤖 copilot:~/vaults-rebalancer$ git status
-  On branch feature/metrics-dashboard
-  Your branch is up to date with 'origin/feature/metrics-dashboard'.
-  
-  Changes to be committed:
-    (use "git restore --staged <file>..." to unstage)
-      modified:   .env-usdc
-      modified:   .env-usdt
-      new file:   monitoring/dashboards/rebalancer-dashboard.json
-      modified:   monitoring/docker-compose.yml
-      modified:   monitoring/grafana/provisioning/dashboards/dashboards.yml
-      modified:   monitoring/grafana/provisioning/datasources/prometheus.yml
-      modified:   monitoring/prometheus.yml
-      modified:   pnpm-lock.yaml
-  
-  🤖 copilot:~/vaults-rebalancer$ cat monitoring/dashboards/rebalancer-dashboard.json
-  {
-    "__inputs": [
-      {
-        "name": "DS_PROMETHEUS",
-        "label": "Prometheus",
-        "description": "Prometheus datasource for Vault Rebalancer metrics",
-        "type": "datasource",
-        "pluginId": "prometheus",
-        "pluginName": "Prometheus"
-      }
-    ],
-    "__requires": [
-      {
-        "type": "grafana",
-        "id": "grafana",
-        "name": "Grafana",
-        "version": "9.0.0"
-      },
-      {
-        "type": "datasource",
-        "id": "prometheus",
-        "name": "Prometheus",
-        "version": "1.0.0"
-      },
-      {
-        "type": "panel",
-        "id": "timeseries",
-        "name": "Time series",
-        "version": ""
-      },
-      {
-        "type": "panel",
-        "id": "stat",
-        "name": "Stat",
-        "version": ""
-      },
-      {
-        "type": "panel",
-        "id": "gauge",
-        "name": "Gauge",
-        "version": ""
-      }
-    ],
-    "id": null,
-    "uid": null,
-    "title": "Vault Rebalancer",
-    "description": "Monitoring dashboard for the Hubra Vault Rebalancer service",
-    "tags": [
-      "vault",
-      "rebalancer",
-      "hubra"
-    ],
-    "timezone": "browser",
-    "editable": true,
-    "graphTooltip": 1,
-    "refresh": "30s",
-    "schemaVersion": 38,
-    "fiscalYearStartMonth": 0,
-    "liveNow": false,
-    "style": "dark",
-    "time": {
-      "from": "now-6h",
-      "to": "now"
-    },
-    "timepicker": {},
-    "templating": {
-      "list": [
-        {
-          "current": {
-            "selected": false,
-            "text": "All",
-            "value": "$__all"
-          },
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "definition": "label_values(asset)",
-          "includeAll": true,
-          "multi": false,
-          "name": "asset",
-          "label": "Vault",
-          "query": {
-            "query": "label_values(asset)",
-            "refId": "StandardVariableQuery"
-          },
-          "refresh": 1,
-          "sort": 1,
-          "type": "query"
-        }
-      ]
-    },
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
-        }
-      ]
-    },
-    "panels": [
-      {
-        "type": "row",
-        "title": "Financial",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
-        "collapsed": false,
-        "panels": []
-      },
-      {
-        "type": "stat",
-        "title": "Vault Total Value",
-        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            },
-            "unit": "currencyUSD",
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(vault_total_value{asset=~\"$asset\"})",
-            "legendFormat": "Total Value",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Vault Idle Balance",
-        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 1000 },
-                { "color": "red", "value": 10000 }
-              ]
-            },
-            "unit": "currencyUSD",
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(vault_idle_balance{asset=~\"$asset\"})",
-            "legendFormat": "Idle Balance",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Strategy Position Value",
-        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "USD",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "unit": "currencyUSD",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "strategy_position_value{asset=~\"$asset\"}",
-            "legendFormat": "{{asset}} {{strategy_type}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Strategy Target Value",
-        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "USD",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "unit": "currencyUSD",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "strategy_target_value{asset=~\"$asset\"}",
-            "legendFormat": "{{asset}} {{strategy_type}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "row",
-        "title": "Rebalance Decisions",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
-        "collapsed": false,
-        "panels": []
-      },
-      {
-        "type": "stat",
-        "title": "Total Rebalances",
-        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            },
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(rebalance_total{asset=~\"$asset\"})",
-            "legendFormat": "Total",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Rebalance Rate by Trigger",
-        "gridPos": { "h": 8, "w": 8, "x": 4, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "rebalances/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(rebalance_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{trigger}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Rebalance Errors",
-        "gridPos": { "h": 4, "w": 4, "x": 12, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "red", "value": 1 }
-              ]
-            },
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(rebalance_errors_total{asset=~\"$asset\"})",
-            "legendFormat": "Errors",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Fallbacks by Reason",
-        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rebalance_fallback_total{asset=~\"$asset\"}",
-            "legendFormat": "{{asset}} {{reason}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "gauge",
-        "title": "Yield Winner APY",
-        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 14 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "red", "value": null },
-                { "color": "yellow", "value": 0.05 },
-                { "color": "green", "value": 0.1 }
-              ]
-            },
-            "unit": "percentunit",
-            "min": 0,
-            "max": 1,
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "max(yield_winner_apy{asset=~\"$asset\"})",
-            "legendFormat": "Best APY",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Yield Winner TVL",
-        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 14 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            },
-            "unit": "currencyUSD",
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "none",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "max(yield_winner_tvl{asset=~\"$asset\"})",
-            "legendFormat": "TVL",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Rebalance Duration (p50, p95, p99)",
-        "gridPos": { "h": 8, "w": 16, "x": 8, "y": 14 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "seconds",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "unit": "s",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(rebalance_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(rebalance_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p95",
-            "refId": "B"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.99, sum(rate(rebalance_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p99",
-            "refId": "C"
-          }
-        ]
-      },
-      {
-        "type": "row",
-        "title": "Transactions",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
-        "collapsed": false,
-        "panels": []
-      },
-      {
-        "type": "timeseries",
-        "title": "Transaction Rate by Type & Status",
-        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "tx/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(tx_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{type}} / {{status}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Transaction Duration by Type (p50, p95)",
-        "gridPos": { "h": 8, "w": 6, "x": 6, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "seconds",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "unit": "s",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(tx_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(tx_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p95",
-            "refId": "B"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Transaction Compute Units by Type",
-        "gridPos": { "h": 8, "w": 6, "x": 12, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "CU",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(tx_compute_units_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(tx_compute_units_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p95",
-            "refId": "B"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Transaction Priority Fee by Type",
-        "gridPos": { "h": 8, "w": 6, "x": 18, "y": 23 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "fee",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(tx_priority_fee_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(tx_priority_fee_bucket{asset=~\"$asset\"}[5m])) by (le, type))",
-            "legendFormat": "{{type}} p95",
-            "refId": "B"
-          }
-        ]
-      },
-      {
-        "type": "row",
-        "title": "System Health",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
-        "collapsed": false,
-        "panels": []
-      },
-      {
-        "type": "timeseries",
-        "title": "Loop Iterations Rate",
-        "gridPos": { "h": 8, "w": 5, "x": 0, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "iter/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(loop_iterations_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{loop}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Loop Errors Rate",
-        "gridPos": { "h": 8, "w": 5, "x": 5, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "errors/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "red", "value": 0.01 }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(loop_errors_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{loop}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Yield API Call Rate",
-        "gridPos": { "h": 8, "w": 5, "x": 10, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "calls/s",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "rate(yield_api_calls_total{asset=~\"$asset\"}[5m])",
-            "legendFormat": "{{asset}} {{status}}",
-            "refId": "A"
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Yield API Duration (p50, p95)",
-        "gridPos": { "h": 8, "w": 5, "x": 15, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "palette-classic" },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisLabel": "seconds",
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": { "group": "A", "mode": "none" }
-            },
-            "unit": "s",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [{ "color": "green", "value": null }]
-            }
-          },
-          "overrides": []
-        },
-        "options": {
-          "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
-          "tooltip": { "mode": "multi", "sort": "none" }
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.50, sum(rate(yield_api_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p50",
-            "refId": "A"
-          },
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "histogram_quantile(0.95, sum(rate(yield_api_duration_seconds_bucket{asset=~\"$asset\"}[5m])) by (le))",
-            "legendFormat": "p95",
-            "refId": "B"
-          }
-        ]
-      },
-      {
-        "type": "stat",
-        "title": "Worker Restarts",
-        "gridPos": { "h": 4, "w": 4, "x": 20, "y": 32 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "fieldConfig": {
-          "defaults": {
-            "color": { "mode": "thresholds" },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 1 },
-                { "color": "red", "value": 5 }
-              ]
-            },
-            "mappings": []
-          },
-          "overrides": []
-        },
-        "options": {
-          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
-          "orientation": "auto",
-          "textMode": "auto",
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "targets": [
-          {
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "expr": "sum(worker_restarts{asset=~\"$asset\"})",
-            "legendFormat": "Restarts",
-            "refId": "A"
-          }
-        ]
-      }
-    ]
-  }
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Hubra Vault Rebalancer",
+  "uid": "hubra-rebalancer",
+  "version": 1,
+  "weekStart": ""
+}
