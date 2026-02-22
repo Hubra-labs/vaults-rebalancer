@@ -205,24 +205,20 @@ async function resolveYieldWinner(
       return null;
     }
 
-    const providerId = winner.market.id.split(".")[0] || "unknown";
-    const providerName = winner.market.provider?.name || providerId;
-    const tvlUsd = winner.market.totalDepositUsd ?? 0;
-
     workerMetrics.set("yield_winner_apy", winner.market.depositApy);
-    workerMetrics.set("yield_winner_tvl", tvlUsd);
+    workerMetrics.set("yield_winner_tvl", winner.market.totalDepositUsd);
     workerMetrics.set("yield_winner_info", 1, {
       strategy_id: winner.strategy.id,
-      provider: providerName,
+      provider: winner.market.provider.name,
     });
 
     logger.info(
       {
         winnerId: winner.strategy.id,
         apy: `${(winner.market.depositApy * 100).toFixed(2)}%`,
-        tvl: tvlUsd > 0 ? `$${Math.round(tvlUsd).toLocaleString()}` : "N/A",
+        tvl: `$${Math.round(winner.market.totalDepositUsd).toLocaleString()}`,
         ourDeposit: `$${Math.round(totalUsd).toLocaleString()}`,
-        provider: providerName,
+        provider: winner.market.provider.name,
       },
       "Yield winner selected — allocating 100%"
     );

@@ -9,12 +9,14 @@ const YIELD_MARKETS_URL = config.yieldMarketsUrl;
  * Hubra Playbook API response format
  */
 export interface YieldMarket {
-  id: string; // e.g., "kamino.lend.BEEfo7..." or "jupiter.earn.USDS"
+  id: string;
   depositApy: number;
-  baseDepositApy?: number;
-  baseDepositApy30d?: number;
-  baseDepositApy90d?: number;
-  baseDepositApy180d?: number;
+  totalDepositUsd: number;
+  provider: {
+    id: string;
+    name: string;
+    icon?: string;
+  };
   token: {
     address: string;
     symbol: string;
@@ -32,34 +34,16 @@ export interface YieldMarket {
       decimals: number;
     };
   };
-  // Optional fields (may be present in full API responses)
-  provider?: { id: string; name: string };
-  totalDepositUsd?: number;
-  totalDeposit?: number;
-  rewards?: Array<{
-    apy: number;
-    token: { address: string; symbol: string };
-  }>;
-  type?: string;
-  assetGroup?: string;
-  productName?: string;
-  websiteUrl?: string;
+  // Optional APY history fields
+  baseDepositApy?: number;
+  baseDepositApy30d?: number;
+  baseDepositApy90d?: number;
+  baseDepositApy180d?: number;
 }
 
 export interface MatchedMarket {
   market: YieldMarket;
   strategy: StrategyConfig;
-}
-
-/**
- * Extract provider ID from market ID.
- * Examples:
- *   "kamino.lend.BEEfo7xwg..." -> "kamino"
- *   "jupiter.earn.USDS" -> "jupiter"
- */
-function extractProviderId(marketId: string): string {
-  const parts = marketId.split(".");
-  return parts[0] || "unknown";
 }
 
 /**
@@ -91,7 +75,7 @@ export async function fetchYieldMarkets(
     }
 
     // Filter by token address
-    const filtered = markets.filter((m) => m.token?.address === assetMint);
+    const filtered = markets.filter((m) => m.token.address === assetMint);
 
     workerMetrics.inc("yield_api_calls_total", { status: "success" });
     workerMetrics.observe(
@@ -123,8 +107,6 @@ export function matchMarketsToStrategies(
   const matched: MatchedMarket[] = [];
 
   for (const market of markets) {
-    const providerId = market.provider?.id || extractProviderId(market.id);
-
     // Match Kamino vaults by vault address
     if (market.additionalData?.vaultAddress) {
       const strategy = strategyRegistry.strategies.find(
@@ -139,7 +121,7 @@ export function matchMarketsToStrategies(
     }
 
     // Match Jupiter Lend by provider
-    if (providerId === "jupiter") {
+    if (market.provider.id === "jupiter") {
       const strategy = strategyRegistry.strategies.find(
         (s) => s.type === "jupiterLend"
       );
@@ -156,13 +138,7 @@ export function filterByTvl(
   markets: MatchedMarket[],
   minUsd: number = config.minTvlUsd
 ): MatchedMarket[] {
-  // If totalDepositUsd is not available, skip TVL filtering
-  return markets.filter((m) => {
-    if (m.market.totalDepositUsd === undefined) {
-      return true; // No TVL data, include in results
-    }
-    return m.market.totalDepositUsd >= minUsd;
-  });
+  return markets.filter((m) => m.market.totalDepositUsd >= minUsd);
 }
 
 export function checkDilution(
@@ -171,10 +147,6 @@ export function checkDilution(
   maxPct: number = config.maxDilutionPct
 ): boolean {
   const { depositApy, totalDepositUsd } = market;
-  // If no TVL data, skip dilution check
-  if (totalDepositUsd === undefined) {
-    return true;
-  }
   const effectiveApy =
     (depositApy * totalDepositUsd) / (totalDepositUsd + ourDepositUsd);
   const dilution = depositApy - effectiveApy;
@@ -207,16 +179,14 @@ export function selectWinner(
   dilutionFiltered.sort((a, b) => b.market.depositApy - a.market.depositApy);
 
   const winner = dilutionFiltered[0];
-  const providerId = extractProviderId(winner.market.id);
-  const providerName = winner.market.provider?.name || providerId;
 
   logger.info(
     {
       strategyId: winner.strategy.id,
       marketId: winner.market.id,
       apy: winner.market.depositApy,
-      tvl: winner.market.totalDepositUsd ?? "N/A",
-      provider: providerName,
+      tvl: winner.market.totalDepositUsd,
+      provider: winner.market.provider.name,
       token: winner.market.token.symbol,
     },
     "Selected yield winner"
