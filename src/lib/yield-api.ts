@@ -6,7 +6,8 @@ import { StrategyConfig, strategyRegistry } from "./strategy-config";
 const YIELD_MARKETS_URL = config.yieldMarketsUrl;
 
 /**
- * Hubra Playbook API response format
+ * Hubra Playbook API response format.
+ * Returns the best yield opportunity per asset (pre-selected by the API).
  */
 export interface YieldMarket {
   id: string;
@@ -34,7 +35,6 @@ export interface YieldMarket {
       decimals: number;
     };
   };
-  // Optional APY history fields
   baseDepositApy?: number;
   baseDepositApy30d?: number;
   baseDepositApy90d?: number;
@@ -47,8 +47,8 @@ export interface MatchedMarket {
 }
 
 /**
- * Fetches yield markets from the Hubra Playbook API.
- * Filters results by the specified asset mint address.
+ * Fetches the best yield opportunity for a given asset from the Playbook API.
+ * The API returns one pre-selected best opportunity per asset.
  */
 export async function fetchYieldMarkets(
   assetMint: string
@@ -74,7 +74,8 @@ export async function fetchYieldMarkets(
       throw new Error("Invalid API response: expected array");
     }
 
-    // Filter by token address
+    // Filter by token address - should return 0 or 1 result
+    // since API returns one best opportunity per asset
     const filtered = markets.filter((m) => m.token.address === assetMint);
 
     workerMetrics.inc("yield_api_calls_total", { status: "success" });
@@ -85,7 +86,7 @@ export async function fetchYieldMarkets(
 
     logger.debug(
       { total: markets.length, forAsset: filtered.length, assetMint },
-      "Fetched yield markets from Playbook API"
+      "Fetched best yield opportunity from Playbook API"
     );
     return filtered;
   } catch (error) {
@@ -101,96 +102,78 @@ export async function fetchYieldMarkets(
   }
 }
 
-export function matchMarketsToStrategies(
-  markets: YieldMarket[]
-): MatchedMarket[] {
-  const matched: MatchedMarket[] = [];
-
-  for (const market of markets) {
-    // Match Kamino vaults by vault address
-    if (market.additionalData?.vaultAddress) {
-      const strategy = strategyRegistry.strategies.find(
-        (s) =>
-          s.type === "kaminoVault" &&
-          s.address === market.additionalData.vaultAddress
-      );
-      if (strategy) {
-        matched.push({ market, strategy });
-        continue;
-      }
-    }
-
-    // Match Jupiter Lend by provider
-    if (market.provider.id === "jupiter") {
-      const strategy = strategyRegistry.strategies.find(
-        (s) => s.type === "jupiterLend"
-      );
-      if (strategy) {
-        matched.push({ market, strategy });
-      }
+/**
+ * Matches a yield market to a configured strategy.
+ * Since the API returns the best opportunity, we just need to find
+ * if we have a matching strategy configured.
+ */
+export function matchMarketToStrategy(
+  market: YieldMarket
+): MatchedMarket | null {
+  // Match Kamino vaults by vault address
+  if (market.additionalData?.vaultAddress) {
+    const strategy = strategyRegistry.strategies.find(
+      (s) =>
+        s.type === "kaminoVault" &&
+        s.address === market.additionalData.vaultAddress
+    );
+    if (strategy) {
+      return { market, strategy };
     }
   }
 
-  return matched;
+  // Match Jupiter Lend by provider
+  if (market.provider.id === "jupiter") {
+    const strategy = strategyRegistry.strategies.find(
+      (s) => s.type === "jupiterLend"
+    );
+    if (strategy) {
+      return { market, strategy };
+    }
+  }
+
+  return null;
 }
 
-export function filterByTvl(
-  markets: MatchedMarket[],
-  minUsd: number = config.minTvlUsd
-): MatchedMarket[] {
-  return markets.filter((m) => m.market.totalDepositUsd >= minUsd);
-}
-
-export function checkDilution(
-  market: YieldMarket,
-  ourDepositUsd: number,
-  maxPct: number = config.maxDilutionPct
-): boolean {
-  const { depositApy, totalDepositUsd } = market;
-  const effectiveApy =
-    (depositApy * totalDepositUsd) / (totalDepositUsd + ourDepositUsd);
-  const dilution = depositApy - effectiveApy;
-  return dilution <= maxPct;
-}
-
+/**
+ * Gets the best yield opportunity for an asset and matches it to a strategy.
+ * Returns the matched market or null if no matching strategy is configured.
+ */
 export function selectWinner(
-  markets: MatchedMarket[],
-  ourDepositUsd: number
+  markets: YieldMarket[]
 ): MatchedMarket | null {
-  const tvlFiltered = filterByTvl(markets);
-  logger.debug(
-    { before: markets.length, after: tvlFiltered.length },
-    "TVL filter applied"
-  );
-
-  const dilutionFiltered = tvlFiltered.filter((m) =>
-    checkDilution(m.market, ourDepositUsd)
-  );
-  logger.debug(
-    { before: tvlFiltered.length, after: dilutionFiltered.length },
-    "Dilution filter applied"
-  );
-
-  if (dilutionFiltered.length === 0) {
+  if (markets.length === 0) {
+    logger.warn("No yield opportunities returned from API");
     return null;
   }
 
-  // Sort by APY descending
-  dilutionFiltered.sort((a, b) => b.market.depositApy - a.market.depositApy);
+  // API returns best opportunity per asset, so take the first (only) one
+  const bestMarket = markets[0];
 
-  const winner = dilutionFiltered[0];
+  const matched = matchMarketToStrategy(bestMarket);
+  if (!matched) {
+    logger.warn(
+      {
+        marketId: bestMarket.id,
+        vaultAddress: bestMarket.additionalData?.vaultAddress,
+        provider: bestMarket.provider.id,
+      },
+      "Best yield opportunity has no matching strategy configured"
+    );
+    return null;
+  }
 
   logger.info(
     {
-      strategyId: winner.strategy.id,
-      marketId: winner.market.id,
-      apy: winner.market.depositApy,
-      tvl: winner.market.totalDepositUsd,
-      provider: winner.market.provider.name,
-      token: winner.market.token.symbol,
+      strategyId: matched.strategy.id,
+      marketId: matched.market.id,
+      apy: matched.market.depositApy,
+      tvl: matched.market.totalDepositUsd,
+      provider: matched.market.provider.name,
+      token: matched.market.token.symbol,
     },
-    "Selected yield winner"
+    "Selected yield winner from Playbook API"
   );
 
-  return winner;
+  return matched;
 }

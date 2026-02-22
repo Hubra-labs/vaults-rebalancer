@@ -18,15 +18,12 @@ import {
   strategyRegistry,
   IDLE_ID,
 } from "../strategy-config";
-import { getTokensBatchPrice } from "../price";
 import {
   fetchYieldMarkets,
-  matchMarketsToStrategies,
   selectWinner,
 } from "../yield-api";
 import { logger } from "../utils";
 import { workerMetrics } from "../metrics-bridge";
-import Decimal from "decimal.js";
 
 export * from "./types";
 
@@ -178,30 +175,12 @@ async function resolveYieldWinner(
     const assetMint = config.assetMintAddress as string;
     const markets = await fetchYieldMarkets(assetMint);
 
-    const matched = matchMarketsToStrategies(markets);
-    logger.info(
-      { fetched: markets.length, matched: matched.length },
-      "Yield market matching complete"
-    );
-
-    if (matched.length === 0) {
-      logger.warn("No yield markets matched any registered strategy, falling back to equal-weight");
-      workerMetrics.inc("rebalance_fallback_total", { reason: "no_match" });
-      return null;
-    }
-
-    const prices = await getTokensBatchPrice([config.assetMintAddress]);
-    const assetPrice = prices.get(config.assetMintAddress) ?? new Decimal(1);
-    const decimals = 6;
-    const totalUsd = new Decimal(totalPositionValue.toString())
-      .div(new Decimal(10).pow(decimals))
-      .mul(assetPrice)
-      .toNumber();
-
-    const winner = selectWinner(matched, totalUsd);
+    // Playbook API returns the best opportunity per asset (pre-selected)
+    // selectWinner matches it to a configured strategy
+    const winner = selectWinner(markets);
     if (!winner) {
-      logger.warn("All candidates filtered out by TVL/dilution, falling back to equal-weight");
-      workerMetrics.inc("rebalance_fallback_total", { reason: "all_filtered" });
+      logger.warn("No matching strategy for best yield opportunity, falling back to equal-weight");
+      workerMetrics.inc("rebalance_fallback_total", { reason: "no_match" });
       return null;
     }
 
@@ -217,7 +196,6 @@ async function resolveYieldWinner(
         winnerId: winner.strategy.id,
         apy: `${(winner.market.depositApy * 100).toFixed(2)}%`,
         tvl: `$${Math.round(winner.market.totalDepositUsd).toLocaleString()}`,
-        ourDeposit: `$${Math.round(totalUsd).toLocaleString()}`,
         provider: winner.market.provider.name,
       },
       "Yield winner selected — allocating 100%"

@@ -1,5 +1,6 @@
 {
   "strategies": [
+    { "id": "jupiterLend", "type": "jupiterLend" },
     { "id": "driftMain", "type": "driftEarn", "marketIndex": 28 },
     {
       "id": "elemental-usds-optimizer",
