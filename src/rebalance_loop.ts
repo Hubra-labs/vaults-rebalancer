@@ -279,7 +279,8 @@ export async function runRebalanceLoop() {
           retryError,
           `[Rebalance Loop ${loopCount}] Retry failed. Waiting for next scheduled cycle.`
         );
-        // Don't update lastExecutionTime - will retry at next scheduled interval
+        // Update lastExecutionTime so we wait for full interval before next attempt
+        lastExecutionTime = Date.now();
       }
     }
 
