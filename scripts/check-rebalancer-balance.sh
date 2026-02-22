@@ -1,8 +1,13 @@
 #!/bin/bash
 # Check rebalancer wallet balance and alert if below threshold
-# Wallet: RAsqdnFbY1KL6i9T1zobcB812wBYHaZb8pUL8MvqtCP
+# Uses VOLTR_VAULT_MANAGER_ADDRESS from environment
 
-WALLET="RAsqdnFbY1KL6i9T1zobcB812wBYHaZb8pUL8MvqtCP"
+WALLET="${VOLTR_VAULT_MANAGER_ADDRESS:-}"
+
+if [ -z "$WALLET" ]; then
+  echo "ERROR: VOLTR_VAULT_MANAGER_ADDRESS not set"
+  exit 1
+fi
 THRESHOLD=0.1
 RPC_URL="https://api.mainnet-beta.solana.com"
 
