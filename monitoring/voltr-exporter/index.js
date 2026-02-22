@@ -39,6 +39,14 @@ const poolAllocationGauge = new Gauge({
   registers: [register]
 });
 
+// Vault info metric (for displaying vault addresses)
+const vaultInfoGauge = new Gauge({
+  name: 'voltr_vault_info',
+  help: 'Vault information (value is always 1)',
+  labelNames: ['asset', 'vault_address'],
+  registers: [register]
+});
+
 const dailyTvlGauge = new Gauge({
   name: 'voltr_daily_tvl_usd',
   help: 'Historical daily TVL',
@@ -56,7 +64,7 @@ const dailyApyGauge = new Gauge({
 const idleFundsGauge = new Gauge({
   name: 'voltr_idle_funds_usd',
   help: 'Unallocated idle funds (USD)',
-  labelNames: ['asset'],
+  labelNames: ['asset', 'vault_address'],
   registers: [register]
 });
 
@@ -164,6 +172,9 @@ async function scrapeVaults() {
         }
       }
 
+      // Vault info (for dashboard display)
+      vaultInfoGauge.set({ asset, vault_address: address }, 1);
+
       // Pool allocations
       let totalAllocated = 0;
       let activeAllocations = 0;
@@ -195,7 +206,7 @@ async function scrapeVaults() {
       // Idle funds
       const idleFunds = vault.totalValue - totalAllocated;
       const idleFundsUsd = (idleFunds / divisor) * price;
-      idleFundsGauge.set({ asset }, Math.max(0, idleFundsUsd));
+      idleFundsGauge.set({ asset, vault_address: address }, Math.max(0, idleFundsUsd));
 
       // Daily stats (last 7 days for efficiency)
       if (vault.dailyStats) {

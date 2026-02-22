@@ -250,7 +250,37 @@ export async function runRebalanceLoop() {
         error,
         `[Rebalance Loop ${loopCount}] Error during rebalance execution`
       );
-      await sleep(12400);
+      
+      // Single retry after 60s, then give up until next scheduled cycle
+      logger.info(`[Rebalance Loop ${loopCount}] Will retry once in 60s...`);
+      await sleep(60_000);
+      
+      if (isShuttingDown()) break;
+      
+      try {
+        logger.info(`[Rebalance Loop ${loopCount}] Retry attempt...`);
+        const { prevAllocations: retryPrev, targetAllocations: retryTarget } =
+          await getCurrentAndTargetAllocation(connection, rpc);
+        
+        await executeRebalance(
+          rpc,
+          connection,
+          manager,
+          voltrClient,
+          retryPrev,
+          retryTarget
+        );
+        
+        logger.info(`[Rebalance Loop ${loopCount}] Retry succeeded.`);
+        lastExecutionTime = Date.now();
+      } catch (retryError) {
+        workerMetrics.inc("rebalance_errors_total");
+        logger.error(
+          retryError,
+          `[Rebalance Loop ${loopCount}] Retry failed. Waiting for next scheduled cycle.`
+        );
+        // Don't update lastExecutionTime - will retry at next scheduled interval
+      }
     }
 
     // Restart subscription if it somehow got disconnected
