@@ -41,7 +41,7 @@ const envSchema = z.object({
   // Yield optimization
   MIN_TVL_USD: z.coerce.number().default(500_000),
   MAX_DILUTION_PCT: z.coerce.number().default(0.005),
-  YIELD_API_TIMEOUT_MS: z.coerce.number().default(5_000),
+  YIELD_API_TIMEOUT_MS: z.coerce.number().default(30_000),
 
   // Worker
   WORKER_MAX_MEMORY_MB: z.coerce.number().default(2048),
