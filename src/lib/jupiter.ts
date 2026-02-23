@@ -339,7 +339,7 @@ export async function createWithdrawJLendStrategyIx(
     toPublicKey(fTokenMint),
     vaultStrategyAuth,
     true,
-    toPublicKey(TOKEN_PROGRAM_ADDR)
+    toPublicKey(config.assetTokenProgram)
   );
 
   const jVault = getAssociatedTokenAddressSync(
