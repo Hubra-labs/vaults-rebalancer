@@ -27,13 +27,17 @@ import { workerMetrics } from "../metrics-bridge";
 
 export * from "./types";
 
+export interface AllocationResult {
+  prevAllocations: Allocation[];
+  targetAllocations: Allocation[];
+  skipRebalance: boolean;
+  skipReason?: string;
+}
+
 export async function getCurrentAndTargetAllocation(
   connection: Connection,
   rpc: Rpc<SolanaRpcApi>
-): Promise<{
-  prevAllocations: Allocation[];
-  targetAllocations: Allocation[];
-}> {
+): Promise<AllocationResult> {
   const voltrClient = new VoltrClient(connection);
 
   // Fetch vault account for authoritative totalValue
@@ -145,12 +149,27 @@ export async function getCurrentAndTargetAllocation(
     })
   );
 
-  const winnerId = await resolveYieldWinner(totalPositionValue);
+  const winnerResult = await resolveYieldWinner(totalPositionValue);
+
+  // If we should skip rebalance (no matching strategy or API failure),
+  // return current allocations as target (no changes)
+  if (winnerResult.skipRebalance) {
+    logger.info(
+      { reason: winnerResult.reason },
+      "Skipping rebalance — keeping current allocation"
+    );
+    return {
+      prevAllocations,
+      targetAllocations: prevAllocations, // No change
+      skipRebalance: true,
+      skipReason: winnerResult.reason,
+    };
+  }
 
   const targetAllocations = createYieldBasedAllocation(
     totalPositionValue,
     strategyInputs,
-    winnerId
+    winnerResult.winnerId
   );
 
   for (const alloc of targetAllocations) {
@@ -165,12 +184,19 @@ export async function getCurrentAndTargetAllocation(
   return {
     prevAllocations,
     targetAllocations,
+    skipRebalance: false,
   };
+}
+
+export interface YieldWinnerResult {
+  winnerId: string | null;
+  skipRebalance: boolean;
+  reason?: string;
 }
 
 async function resolveYieldWinner(
   totalPositionValue: BN
-): Promise<string | null> {
+): Promise<YieldWinnerResult> {
   try {
     const assetMint = config.assetMintAddress as string;
     const markets = await fetchYieldMarkets(assetMint);
@@ -179,9 +205,9 @@ async function resolveYieldWinner(
     // selectWinner matches it to a configured strategy
     const winner = selectWinner(markets);
     if (!winner) {
-      logger.warn("No matching strategy for best yield opportunity, falling back to equal-weight");
-      workerMetrics.inc("rebalance_fallback_total", { reason: "no_match" });
-      return null;
+      logger.warn("No matching strategy for best yield opportunity — keeping current allocation (not falling back to equal-weight)");
+      workerMetrics.inc("rebalance_skip_total", { reason: "no_match" });
+      return { winnerId: null, skipRebalance: true, reason: "no_matching_strategy" };
     }
 
     workerMetrics.set("yield_winner_apy", winner.market.depositApy);
@@ -201,10 +227,10 @@ async function resolveYieldWinner(
       "Yield winner selected — allocating 100%"
     );
 
-    return winner.strategy.id;
+    return { winnerId: winner.strategy.id, skipRebalance: false };
   } catch (error) {
-    workerMetrics.inc("rebalance_fallback_total", { reason: "api_fail" });
-    logger.error(error, "Yield API failed, falling back to equal-weight");
-    return null;
+    workerMetrics.inc("rebalance_skip_total", { reason: "api_fail" });
+    logger.error(error, "Yield API failed — keeping current allocation (not falling back to equal-weight)");
+    return { winnerId: null, skipRebalance: true, reason: "api_error" };
   }
 }

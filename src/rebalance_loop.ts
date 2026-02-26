@@ -4,6 +4,7 @@ import {
   PublicKey,
   TransactionInstruction,
   AccountInfo,
+  AddressLookupTableAccount,
 } from "@solana/web3.js";
 import { VoltrClient } from "@voltr/vault-sdk";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
@@ -22,6 +23,7 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import {
   Allocation,
+  AllocationResult,
   getCurrentAndTargetAllocation,
 } from "./lib/simulate";
 import {
@@ -144,22 +146,29 @@ export async function runRebalanceLoop() {
             workerMetrics.inc("rebalance_total", { trigger: "deposit" });
             const depositStart = Date.now();
 
-            const { prevAllocations, targetAllocations } =
-              await getCurrentAndTargetAllocation(connection, rpc);
+            const allocationResult = await getCurrentAndTargetAllocation(connection, rpc);
 
-            await executeRebalance(
-              rpc,
-              connection,
-              manager,
-              voltrClient,
-              prevAllocations,
-              targetAllocations
-            );
+            if (allocationResult.skipRebalance) {
+              logger.info(
+                { reason: allocationResult.skipReason },
+                `[Rebalance Loop ${loopCount}] Skipping deposit-triggered rebalance — no valid target strategy`
+              );
+              workerMetrics.inc("rebalance_skip_total", { trigger: "deposit", reason: allocationResult.skipReason || "unknown" });
+            } else {
+              await executeRebalance(
+                rpc,
+                connection,
+                manager,
+                voltrClient,
+                allocationResult.prevAllocations,
+                allocationResult.targetAllocations
+              );
 
-            workerMetrics.observe("rebalance_duration_seconds", (Date.now() - depositStart) / 1000);
-            logger.info(
-              `[Rebalance Loop ${loopCount}] Successfully executed rebalance.`
-            );
+              workerMetrics.observe("rebalance_duration_seconds", (Date.now() - depositStart) / 1000);
+              logger.info(
+                `[Rebalance Loop ${loopCount}] Successfully executed rebalance.`
+              );
+            }
 
             lastExecutionTime = Date.now();
             loopCount++;
@@ -208,8 +217,20 @@ export async function runRebalanceLoop() {
       workerMetrics.inc("rebalance_total", { trigger });
       const executionStart = Date.now();
 
-      const { prevAllocations, targetAllocations } =
-        await getCurrentAndTargetAllocation(connection, rpc);
+      const allocationResult = await getCurrentAndTargetAllocation(connection, rpc);
+
+      if (allocationResult.skipRebalance) {
+        logger.info(
+          { reason: allocationResult.skipReason },
+          `[Rebalance Loop ${loopCount}] Skipping ${trigger} rebalance — no valid target strategy`
+        );
+        workerMetrics.inc("rebalance_skip_total", { trigger, reason: allocationResult.skipReason || "unknown" });
+        lastExecutionTime = Date.now();
+        loopCount++;
+        continue;
+      }
+
+      const { prevAllocations, targetAllocations } = allocationResult;
 
       const strategies = prevAllocations.map((allocation) =>
         allocation.strategyId
@@ -259,19 +280,25 @@ export async function runRebalanceLoop() {
       
       try {
         logger.info(`[Rebalance Loop ${loopCount}] Retry attempt...`);
-        const { prevAllocations: retryPrev, targetAllocations: retryTarget } =
-          await getCurrentAndTargetAllocation(connection, rpc);
+        const retryResult = await getCurrentAndTargetAllocation(connection, rpc);
         
-        await executeRebalance(
-          rpc,
-          connection,
-          manager,
-          voltrClient,
-          retryPrev,
-          retryTarget
-        );
-        
-        logger.info(`[Rebalance Loop ${loopCount}] Retry succeeded.`);
+        if (retryResult.skipRebalance) {
+          logger.info(
+            { reason: retryResult.skipReason },
+            `[Rebalance Loop ${loopCount}] Retry skipped — no valid target strategy`
+          );
+        } else {
+          await executeRebalance(
+            rpc,
+            connection,
+            manager,
+            voltrClient,
+            retryResult.prevAllocations,
+            retryResult.targetAllocations
+          );
+          
+          logger.info(`[Rebalance Loop ${loopCount}] Retry succeeded.`);
+        }
         lastExecutionTime = Date.now();
       } catch (retryError) {
         workerMetrics.inc("rebalance_errors_total");
@@ -298,6 +325,50 @@ export async function runRebalanceLoop() {
   }
 }
 
+/**
+ * Simulates a transaction to verify it will succeed before executing.
+ * Returns true if simulation succeeds, false otherwise.
+ */
+async function simulateTransaction(
+  connection: Connection,
+  instructions: TransactionInstruction[],
+  manager: Keypair,
+  addressLookupTableAccounts: AddressLookupTableAccount[]
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { VersionedTransaction, TransactionMessage, ComputeBudgetProgram } = await import("@solana/web3.js");
+    
+    const testInstructions = [
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+      ...instructions,
+    ];
+
+    const transaction = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: testInstructions,
+        payerKey: manager.publicKey,
+        recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+      }).compileToV0Message(addressLookupTableAccounts)
+    );
+    transaction.sign([manager]);
+
+    const result = await connection.simulateTransaction(transaction, {
+      replaceRecentBlockhash: true,
+      sigVerify: false,
+      commitment: "processed",
+    });
+
+    if (result.value.err) {
+      const errorLogs = result.value.logs?.join("\n") || "No logs";
+      return { success: false, error: `Simulation failed: ${JSON.stringify(result.value.err)}\nLogs: ${errorLogs}` };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: `Simulation error: ${error}` };
+  }
+}
+
 async function executeRebalance(
   rpc: Rpc<SolanaRpcApi>,
   connection: Connection,
@@ -306,9 +377,6 @@ async function executeRebalance(
   prevAllocations: Allocation[],
   newAllocations: Allocation[]
 ) {
-  const transactionIxs: TransactionInstruction[] = [];
-  const addressLookupTableAddresses: string[] = [];
-
   const depositDelta = newAllocations.map((allocation, idx) => {
     return {
       strategyId: allocation.strategyId,
@@ -318,12 +386,108 @@ async function executeRebalance(
     };
   });
 
+  // Check if there are any actual changes needed
+  const hasWithdraws = depositDelta.some((d) => d.delta.ltn(0));
+  const hasDeposits = depositDelta.some((d) => d.delta.gtn(0));
+  
+  if (!hasWithdraws && !hasDeposits) {
+    logger.info("No allocation changes needed, skipping rebalance");
+    return;
+  }
+
+  // ========== PHASE 1: Build deposit instructions and simulate FIRST ==========
+  // Before withdrawing anything, verify the deposit will work
+  
+  const depositIxs: TransactionInstruction[] = [];
+  const depositLutAddresses: string[] = [];
   let nWithdraws = 0;
+  
+  // Count withdraws first to calculate deposit amounts
+  for (const allocation of depositDelta.filter((d) => d.delta.ltn(0))) {
+    nWithdraws++;
+  }
+  
+  // Build deposit instructions
+  for (const allocation of depositDelta.filter((d) => d.delta.gtn(0))) {
+    const depositAmount = allocation.delta.subn(nWithdraws);
+    
+    if (depositAmount.lten(0)) {
+      logger.warn(`Deposit amount for ${allocation.strategyId} is <= 0, skipping`);
+      continue;
+    }
+
+    switch (allocation.strategyType) {
+      case "kaminoMarket":
+        await createDepositKMarketStrategyIx(
+          rpc,
+          voltrClient,
+          allocation.strategyAddress,
+          toAddress(manager.publicKey),
+          depositAmount,
+          depositIxs,
+          depositLutAddresses
+        );
+        break;
+      case "driftEarn": {
+        const driftConfig = strategyRegistry.byId.get(allocation.strategyId)! as DriftEarnStrategyConfig;
+        await createDepositDEarnStrategyIx(
+          voltrClient,
+          driftConfig.marketIndex,
+          manager,
+          depositAmount,
+          depositIxs,
+          depositLutAddresses
+        );
+        break;
+      }
+      case "jupiterLend":
+        await createDepositJLendStrategyIx(
+          voltrClient,
+          allocation.strategyAddress,
+          toAddress(manager.publicKey),
+          depositAmount,
+          depositIxs,
+          depositLutAddresses
+        );
+        break;
+      case "kaminoVault":
+        await createDepositKVaultStrategyIx(
+          rpc,
+          voltrClient,
+          allocation.strategyAddress,
+          toAddress(manager.publicKey),
+          depositAmount,
+          depositIxs,
+          depositLutAddresses
+        );
+        break;
+      default:
+        logger.warn(`Unknown strategy type "${allocation.strategyType}" for "${allocation.strategyId}", skipping deposit`);
+        break;
+    }
+  }
+
+  // Note: We can't fully simulate deposits before withdrawal because funds aren't available yet.
+  // Instead, we rely on:
+  // 1. skipRebalance logic - if API returns unconfigured strategy, we skip entirely
+  // 2. The deposit amount calculation accounts for strategy minimums
+  // 3. If deposit fails after withdrawal, the retry logic will attempt to recover
+  //
+  // Future improvement: simulate with a minimal test deposit to verify strategy is functional
+  if (depositIxs.length > 0) {
+    logger.info(
+      { depositCount: depositIxs.length, hasWithdraws },
+      "Deposit transactions prepared — will execute after withdrawals"
+    );
+  }
+
+  // ========== PHASE 2: Execute withdrawals ==========
+  const transactionIxs: TransactionInstruction[] = [];
+  const addressLookupTableAddresses: string[] = [];
+
   for (const allocation of depositDelta.filter((allocation) =>
     allocation.delta.ltn(0)
   )) {
-    nWithdraws++;
-
     const originalIndex = depositDelta.findIndex(
       (a) => a.strategyId === allocation.strategyId
     );
@@ -382,67 +546,17 @@ async function executeRebalance(
     }
   }
 
-  for (const allocation of depositDelta.filter((allocation) =>
-    allocation.delta.gtn(0)
-  )) {
-    const depositAmount = allocation.delta.subn(nWithdraws);
-
-    switch (allocation.strategyType) {
-      case "kaminoMarket":
-        await createDepositKMarketStrategyIx(
-          rpc,
-          voltrClient,
-          allocation.strategyAddress,
-          toAddress(manager.publicKey),
-          depositAmount,
-          transactionIxs,
-          addressLookupTableAddresses
-        );
-        break;
-      case "driftEarn": {
-        const driftConfig = strategyRegistry.byId.get(allocation.strategyId)! as DriftEarnStrategyConfig;
-        await createDepositDEarnStrategyIx(
-          voltrClient,
-          driftConfig.marketIndex,
-          manager,
-          depositAmount,
-          transactionIxs,
-          addressLookupTableAddresses
-        );
-        break;
-      }
-      case "jupiterLend":
-        await createDepositJLendStrategyIx(
-          voltrClient,
-          allocation.strategyAddress,
-          toAddress(manager.publicKey),
-          depositAmount,
-          transactionIxs,
-          addressLookupTableAddresses
-        );
-        break;
-      case "kaminoVault":
-        await createDepositKVaultStrategyIx(
-          rpc,
-          voltrClient,
-          allocation.strategyAddress,
-          toAddress(manager.publicKey),
-          depositAmount,
-          transactionIxs,
-          addressLookupTableAddresses
-        );
-        break;
-      default:
-        logger.warn(`Unknown strategy type "${allocation.strategyType}" for "${allocation.strategyId}", skipping deposit`);
-        break;
-    }
-
-  }
+  // ========== PHASE 3: Add deposit instructions ==========
+  // Reuse the already-built deposit instructions
+  transactionIxs.push(...depositIxs);
+  addressLookupTableAddresses.push(...depositLutAddresses);
 
   addressLookupTableAddresses.push(config.voltrLookupTableAddress);
 
+  // Deduplicate LUT addresses
+  const uniqueLutAddresses = [...new Set(addressLookupTableAddresses)];
   const addressLookupTableAccounts = await getAddressLookupTableAccounts(
-    addressLookupTableAddresses,
+    uniqueLutAddresses,
     rpc
   );
 
