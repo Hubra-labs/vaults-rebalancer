@@ -177,3 +177,11 @@ export function selectWinner(
 
   return matched;
 }
+
+/**
+ * Returns all configured strategies sorted by their current position value (descending).
+ * Used as fallback options when the winner strategy fails.
+ */
+export function getFallbackStrategies(): StrategyConfig[] {
+  return strategyRegistry.strategies.filter(s => s.type !== "idle");
+}
