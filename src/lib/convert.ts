@@ -11,6 +11,11 @@ export function toAddress(pk: PublicKey): Address {
   return address(pk.toBase58());
 }
 
+/** Convert a kit Address to a base58 string. */
+export function toBase58(addr: Address): string {
+  return String(addr);
+}
+
 /** The all-zeros address (replaces PublicKey.default). */
 export const DEFAULT_ADDRESS: Address = address(
   "11111111111111111111111111111111"
