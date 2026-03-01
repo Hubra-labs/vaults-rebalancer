@@ -3,8 +3,8 @@
       { "id": "driftMain", "type": "driftEarn", "marketIndex": 0 },
       { "id": "driftJlp", "type": "driftEarn", "marketIndex": 34 },
       { "id": "jupiterLend", "type": "jupiterLend" },
-      { "id": "elemental-usdc-optimizer", "type": "kaminoVault", "address": "GFiW6edsrtHZd4Vnz2qTSurVasRrgKrXE1ouHNtCVsft" },
-      { "id": "gauntlet-usdc-frontier", "type": "kaminoVault", "address": "A3hTCWdnfV6uiQLxRmnv17EpiEtmc93v1AGQnWy44Mup" },
+      { "id": "gauntlet-usdc-frontier", "type": "kaminoVault", "address": "GFiW6edsrtHZd4Vnz2qTSurVasRrgKrXE1ouHNtCVsft" },
+      { "id": "elemental-usdc-optimizer", "type": "kaminoVault", "address": "A3hTCWdnfV6uiQLxRmnv17EpiEtmc93v1AGQnWy44Mup" },
       { "id": "rockaway-rwa-usdc", "type": "kaminoVault", "address": "DWSXb18xZApz29vnQpgR2m6MynCT7PznaXt7Ut7M7KaP" },
       { "id": "neutral-trade-usdc-max-yield", "type": "kaminoVault", "address": "67dqmR76uAbjX6e81A1ganKv3ou31WUMEdeWJkwVfeXy" },
       { "id": "steakhouse-usdc-high-yield", "type": "kaminoVault", "address": "BEEfo7xwgK2ZP13Pxo7qqTPzAteKJmXjVWtMWcXSvbn2" },
@@ -14,4 +14,3 @@
       { "id": "usdc-prime", "type": "kaminoVault", "address": "HDsayqAsDWy3QvANGqh2yNraqcD8Fnjgh73Mhb3WRS5E" }
       ]
   }
-  
