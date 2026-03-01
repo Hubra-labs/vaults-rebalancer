@@ -158,7 +158,7 @@ async function fetchFromDialect(): Promise<LendingOpportunity[]> {
   const fetchStart = Date.now();
   try {
     const response = await fetch(
-      "https://markets.dial.to/api/v0/markets?type=yield&provider=kamino,jupiter",
+      config.yieldMarketsUrl,
       { signal: controller.signal }
     );
 
