@@ -84,7 +84,7 @@ export const rebalanceFallbackTotal = counter({
 export const yieldApiCallsTotal = counter({
   name: "yield_api_calls_total",
   help: "Yield API call count by status",
-  labelNames: ["status"],
+  labelNames: ["status", "provider"],
 });
 
 export const txTotal = counter({
@@ -145,7 +145,7 @@ export const txPriorityFee = histogram({
 export const yieldWinnerInfo = gauge({
   name: "yield_winner_info",
   help: "Current yield winner (label-only info metric)",
-  labelNames: ["strategy_id", "provider"],
+  labelNames: ["strategy_id", "provider", "pool_pubkey", "vault_address"],
 });
 
 // --- Metric message types for worker bridge ---
