@@ -1,17 +1,4 @@
 services:
-  voltr-exporter:
-    build: ./voltr-exporter
-    image: voltr-exporter:latest
-    ports:
-      - "127.0.0.1:9101:9101"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9101/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
-
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -28,14 +15,16 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-      - GF_AUTH_DISABLE_SIGNOUT_MENU=true
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://falcon.hubra.app/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/rebalancer-dashboard.json
+      - GF_DEFAULT_HOME_DASHBOARD_UID=vault-rebalancer-2026
+      - GF_SERVER_ROOT_URL=https://hq.hubra.app/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_DOMAIN=hq.hubra.app
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./dashboards:/etc/grafana/dashboards:ro

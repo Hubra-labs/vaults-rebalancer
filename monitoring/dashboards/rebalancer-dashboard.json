@@ -5,40 +5,46 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
+  "id": 2,
+  "uid": "vault-rebalancer-2026",
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "type": "table",
-      "title": "\ud83d\udd11 Vault Address",
+      "collapsed": false,
       "gridPos": {
-        "h": 4,
+        "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 100,
+      "panels": [],
+      "title": "🗂️ Vaults Overview",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false,
+            "filterable": false
           },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "green",
                 "value": null
               }
             ]
-          },
-          "custom": {
-            "align": "center",
-            "displayMode": "auto"
           }
         },
         "overrides": [
@@ -49,54 +55,167 @@
             },
             "properties": [
               {
-                "id": "custom.hidden",
-                "value": true
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Strategy"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Provider"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pool Pubkey"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 350
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TVL"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "APY"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
               }
             ]
           }
         ]
       },
-      "options": {
-        "showHeader": false,
-        "cellHeight": "lg",
-        "footer": {
-          "show": false
-        }
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 1
       },
+      "id": 1,
+      "options": {
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "voltr_vault_info{asset=~\"$asset\"}",
-          "refId": "A",
+          "expr": "yield_winner_info",
           "format": "table",
-          "instant": true
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "vault_total_value",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "yield_winner_apy",
+          "format": "table",
+          "instant": true,
+          "refId": "C"
         }
       ],
+      "title": "🏦 All Vaults with Full IDs",
       "transformations": [
         {
-          "id": "filterFieldsByName",
+          "id": "joinByField",
           "options": {
-            "include": {
-              "names": [
-                "asset",
-                "vault_address"
-              ]
-            }
+            "byField": "asset",
+            "mode": "outer"
           }
         },
         {
           "id": "organize",
           "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "Value #A": true,
+              "strategy_type": true,
+              "vault_address": true
+            },
+            "indexByName": {
+              "asset": 0,
+              "Value #B": 1,
+              "Value #C": 2,
+              "strategy_id": 3,
+              "provider": 4,
+              "pool_pubkey": 5
+            },
             "renameByName": {
-              "vault_address": "Vault Address",
-              "asset": "Asset"
+              "asset": "Asset",
+              "strategy_id": "Strategy",
+              "provider": "Provider",
+              "Value #B": "TVL",
+              "Value #C": "APY",
+              "pool_pubkey": "Pool Pubkey"
             }
           }
         }
-      ]
+      ],
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -104,11 +223,132 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 10
       },
-      "id": 100,
+      "id": 160,
       "panels": [],
-      "title": "\ud83d\udcca Overview",
+      "title": "🔑 Vault Pubkeys",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Asset"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Vault Address"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 500
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "text"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 161,
+      "options": {
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "yield_winner_info",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "🔑 Vault Public Keys",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "Value": true,
+              "strategy_id": true,
+              "provider": true,
+              "pool_pubkey": true
+            },
+            "indexByName": {
+              "asset": 0,
+              "vault_address": 1
+            },
+            "renameByName": {
+              "asset": "Asset",
+              "vault_address": "Vault Address"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 200,
+      "panels": [],
+      "title": "📋 Strategy Overview",
       "type": "row"
     },
     {
@@ -131,17 +371,17 @@
               }
             ]
           },
-          "unit": "currencyUSD"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 7,
+        "w": 12,
         "x": 0,
-        "y": 5
+        "y": 19
       },
-      "id": 1,
+      "id": 202,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -154,145 +394,22 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(voltr_vault_tvl_usd)",
-          "legendFormat": "Total TVL",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(group by (strategy_id) (strategy_position_value{asset=~\"$asset\"} > 0))",
+          "legendFormat": "Total Strategies",
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udcb0 Total TVL",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 10
-              },
-              {
-                "color": "red",
-                "value": 100
-              }
-            ]
-          },
-          "unit": "currencyUSD"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 5
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "sum(voltr_idle_funds_usd)",
-          "legendFormat": "Idle Funds",
-          "refId": "A"
-        }
-      ],
-      "title": "\ud83d\udca4 Idle Funds",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 3
-              },
-              {
-                "color": "green",
-                "value": 5
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 5
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "avg(voltr_vault_apy_percent{period=\"1d\"})",
-          "legendFormat": "Avg APY",
-          "refId": "A"
-        }
-      ],
-      "title": "\ud83d\udcc8 Avg APY (1d)",
+      "title": "📊 Total Strategies",
       "type": "stat"
     },
     {
@@ -320,12 +437,86 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 5
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 19
       },
-      "id": 4,
+      "id": 203,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(group by (strategy_id) (strategy_position_value))",
+          "legendFormat": "Total Pools",
+          "refId": "A"
+        }
+      ],
+      "title": "🏊 Number of Pools",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 104,
+      "panels": [],
+      "title": "💰 TVL & Idle Funds",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 29
+      },
+      "id": 19,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -343,26 +534,133 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(increase(rebalance_total[24h]))",
-          "legendFormat": "Rebalances (24h)",
+          "expr": "sum(vault_total_value{asset=~\"$asset\"})",
+          "legendFormat": "Total TVL",
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udd04 Rebalances (24h)",
+      "title": "💰 Total TVL",
       "type": "stat"
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 9
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      "id": 101,
-      "panels": [],
-      "title": "\ud83d\udcc8 Performance",
-      "type": "row"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10000
+              },
+              {
+                "color": "red",
+                "value": 100000
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 29
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(vault_idle_balance{asset=~\"$asset\"})",
+          "legendFormat": "Idle Funds",
+          "refId": "A"
+        }
+      ],
+      "title": "💤 Total Idle Funds",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 29
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "(sum(vault_idle_balance{asset=~\"$asset\"}) / sum(vault_total_value{asset=~\"$asset\"})) * 100",
+          "legendFormat": "Idle %",
+          "refId": "A"
+        }
+      ],
+      "title": "💤 Idle Funds %",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -418,15 +716,31 @@
           },
           "unit": "currencyUSD"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Idle.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 10
+        "y": 36
       },
-      "id": 10,
+      "id": 23,
       "options": {
         "legend": {
           "calcs": [
@@ -443,13 +757,429 @@
       },
       "targets": [
         {
-          "expr": "voltr_vault_tvl_usd{asset=~\"$asset\"}",
-          "legendFormat": "{{asset}}",
+          "expr": "vault_total_value{asset=~\"$asset\"}",
+          "legendFormat": "{{asset}} TVL",
+          "refId": "A"
+        },
+        {
+          "expr": "vault_idle_balance{asset=~\"$asset\"}",
+          "legendFormat": "{{asset}} Idle",
+          "refId": "B"
+        }
+      ],
+      "title": "💰 TVL vs Idle Funds Over Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 101,
+      "panels": [],
+      "title": "🏊 Pool Allocations",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 55
+      },
+      "id": 2,
+      "options": {
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(15, strategy_position_value{asset=~\"$asset\"} > 1000)",
+          "legendFormat": "{{asset}} | {{strategy_type}} - {{strategy_id}}",
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udcb0 TVL by Vault",
+      "title": "💰 Current Pool Allocations",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 55
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(10, strategy_position_value{asset=~\"$asset\"})",
+          "legendFormat": "{{asset}} | {{strategy_type}} - {{strategy_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "📈 Historical Pool Allocations",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "id": 102,
+      "panels": [],
+      "title": "📊 APY Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 55
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "avg(yield_winner_apy{asset=~\"$asset\"}) * 100",
+          "legendFormat": "Average APY",
+          "refId": "A"
+        }
+      ],
+      "title": "📈 Average APY",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 55
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "max(yield_winner_apy{asset=~\"$asset\"}) * 100",
+          "legendFormat": "Winning APY",
+          "refId": "A"
+        }
+      ],
+      "title": "🏆 Winning APY",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 55
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "max(yield_winner_apy{asset=~\"$asset\"}) * 100",
+          "legendFormat": "Max APY",
+          "refId": "A"
+        }
+      ],
+      "title": "🔥 Max Vault APY",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 55
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "min(yield_winner_apy{asset=~\"$asset\"}) * 100",
+          "legendFormat": "Min APY",
+          "refId": "A"
+        }
+      ],
+      "title": "🐌 Min Vault APY",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -509,15 +1239,17 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 10
+        "w": 24,
+        "x": 0,
+        "y": 62
       },
-      "id": 11,
+      "id": 9,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "lastNotNull",
+            "mean",
+            "max"
           ],
           "displayMode": "table",
           "placement": "bottom",
@@ -530,17 +1262,17 @@
       },
       "targets": [
         {
-          "expr": "voltr_vault_apy_percent{asset=~\"$asset\", period=\"1d\"}",
+          "expr": "yield_winner_apy{asset=~\"$asset\"} * 100",
           "legendFormat": "{{asset}} (1d)",
           "refId": "A"
         },
         {
-          "expr": "voltr_vault_apy_percent{asset=~\"$asset\", period=\"7d\"}",
-          "legendFormat": "{{asset}} (7d)",
+          "expr": "avg(yield_winner_apy{asset=~\"$asset\"}) * 100",
+          "legendFormat": "Average",
           "refId": "B"
         }
       ],
-      "title": "\ud83d\udcc8 APY by Vault",
+      "title": "📈 APY Trends Over Time",
       "type": "timeseries"
     },
     {
@@ -549,12 +1281,252 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 70
       },
-      "id": 102,
+      "id": 103,
       "panels": [],
-      "title": "\ud83d\udd04 Rebalancing Activity",
+      "title": "🔄 Rebalancing Activity",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 71
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(rebalance_total{asset=~\"$asset\"}[24h]))",
+          "legendFormat": "24h",
+          "refId": "A"
+        }
+      ],
+      "title": "🔄 Rebalances (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 90
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 71
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "1 - (sum(increase(rebalance_errors_total{asset=~\"$asset\"}[24h])) / clamp_min(sum(increase(rebalance_total{asset=~\"$asset\"}[24h])), 1))",
+          "legendFormat": "Success Rate",
+          "refId": "A"
+        }
+      ],
+      "title": "✅ Success Rate (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 71
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(rebalance_duration_seconds_bucket[1h])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ],
+      "title": "⏱️ Duration p95",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "dateTimeAsIso"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 71
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "time() - (time() - max(timestamp(increase(rebalance_total{asset=~\"$asset\"}[1m]) > 0)))",
+          "legendFormat": "Last Rebalance",
+          "refId": "A"
+        }
+      ],
+      "title": "🕐 Last Rebalance",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -574,7 +1546,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "bars",
-            "fillOpacity": 100,
+            "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -614,11 +1586,11 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 19
+        "y": 78
       },
-      "id": 20,
+      "id": 18,
       "options": {
         "legend": {
           "calcs": [
@@ -640,8 +1612,21 @@
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udd04 Rebalances per Hour",
+      "title": "🔄 Rebalance Activity Timeline",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 86
+      },
+      "id": 105,
+      "panels": [],
+      "title": "💸 Transaction Costs & Fees",
+      "type": "row"
     },
     {
       "datasource": {
@@ -662,8 +1647,12 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 1000000
+              },
+              {
                 "color": "red",
-                "value": 1
+                "value": 5000000
               }
             ]
           },
@@ -672,68 +1661,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 7,
         "w": 6,
-        "x": 12,
-        "y": 19
+        "x": 0,
+        "y": 87
       },
-      "id": 21,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "sum(increase(rebalance_errors_total[24h]))",
-          "legendFormat": "Errors",
-          "refId": "A"
-        }
-      ],
-      "title": "\u274c Errors (24h)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 19
-      },
-      "id": 22,
+      "id": 24,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -751,12 +1684,12 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(rebalance_duration_seconds_bucket[1h])) by (le))",
-          "legendFormat": "p95",
+          "expr": "rate(tx_compute_units_sum[5m]) / rate(tx_compute_units_count[5m])",
+          "legendFormat": "Avg Compute Units",
           "refId": "A"
         }
       ],
-      "title": "\u23f1\ufe0f Rebalance Duration (p95)",
+      "title": "⚡ Avg Compute Units",
       "type": "stat"
     },
     {
@@ -771,33 +1704,33 @@
           },
           "mappings": [],
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": null
               },
               {
                 "color": "yellow",
-                "value": 90
+                "value": 100
               },
               {
-                "color": "green",
-                "value": 99
+                "color": "red",
+                "value": 1000
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 7,
         "w": 6,
-        "x": 12,
-        "y": 23
+        "x": 6,
+        "y": 87
       },
-      "id": 23,
+      "id": 25,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -805,7 +1738,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "mean"
           ],
           "fields": "",
           "values": false
@@ -813,492 +1746,14 @@
         "textMode": "auto"
       },
       "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "1 - (sum(increase(rebalance_errors_total[24h])) / sum(increase(rebalance_total[24h])))",
-          "legendFormat": "Success Rate",
-          "refId": "A"
-        }
-      ],
-      "title": "\u2705 Success Rate (24h)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 23
-      },
-      "id": 24,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "sum(increase(tx_total{type=\"rebalance\", status=\"success\"}[24h]))",
-          "legendFormat": "Transactions",
-          "refId": "A"
-        }
-      ],
-      "title": "\ud83d\udcdd Transactions (24h)",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 27
-      },
-      "id": 103,
-      "panels": [],
-      "title": "\ud83c\udfe6 Pool Allocations",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "mappings": [],
-          "unit": "currencyUSD"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 28
-      },
-      "id": 30,
-      "options": {
-        "displayLabels": [
-          "percent"
-        ],
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": [
-            "value"
-          ]
-        },
-        "pieType": "donut",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "expr": "topk(10, voltr_pool_allocation_usd{asset=~\"$asset\"} > 0)",
-          "legendFormat": "{{asset}} | {{vault_address}} | {{org}} - {{strategy}}",
-          "refId": "A"
-        }
-      ],
-      "title": "\ud83e\udd67 Current Allocation",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 30,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "currencyUSD"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 16,
-        "x": 8,
-        "y": 28
-      },
-      "id": 31,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "expr": "topk(5, voltr_pool_allocation_usd{asset=~\"$asset\"})",
-          "legendFormat": "{{asset}} | {{vault_address}} | {{org}} - {{strategy}}",
-          "refId": "A"
-        }
-      ],
-      "title": "\ud83d\udcca Pool Allocation Over Time",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 36
-      },
-      "id": 104,
-      "panels": [],
-      "title": "\ud83d\udcb8 Costs & Fees",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
-        "y": 37
-      },
-      "id": 40,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "sum"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(tx_compute_units_sum{type=\"unknown\"}[5m]) / rate(tx_compute_units_count{type=\"unknown\"}[5m])",
-          "legendFormat": "Compute Units",
-          "refId": "A"
-        }
-      ],
-      "title": "\u26a1 Compute Units per TX",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 37
-      },
-      "id": 41,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "sum"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
       "targets": [
         {
           "expr": "rate(tx_priority_fee_sum[5m]) / rate(tx_priority_fee_count[5m])",
-          "legendFormat": "Priority Fee (\u00b5Lamports)",
+          "legendFormat": "Avg Priority Fee",
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udcb0 Priority Fee per TX",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 43
-      },
-      "id": 105,
-      "panels": [],
-      "title": "\ud83c\udfaf Yield Winners",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 0,
-        "y": 44
-      },
-      "id": 50,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "yield_winner_apy{asset=~\"$asset\"} * 100",
-          "legendFormat": "{{asset}}",
-          "refId": "A"
-        }
-      ],
-      "title": "\ud83c\udfc6 Best APY per Vault",
+      "title": "💰 Avg Priority Fee (μLamports)",
       "type": "stat"
     },
     {
@@ -1311,37 +1766,61 @@
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 87
+      },
+      "id": 26,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(tx_total[24h]))",
+          "legendFormat": "Transactions (24h)",
+          "refId": "A"
+        }
+      ],
+      "title": "📝 Transactions (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
           },
           "mappings": [],
           "thresholds": {
@@ -1353,40 +1832,41 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 16,
-        "x": 8,
-        "y": 44
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 87
       },
-      "id": 51,
+      "id": 27,
       "options": {
-        "legend": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
+        "textMode": "auto"
       },
+      "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "yield_winner_apy{asset=~\"$asset\"} * 100",
-          "legendFormat": "{{asset}}",
+          "expr": "sum(tx_compute_units_sum[24h])",
+          "legendFormat": "Total CU (24h)",
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udcca Best APY Over Time",
-      "type": "timeseries"
+      "title": "⚡ Total Compute Units (24h)",
+      "type": "stat"
     },
     {
       "collapsed": false,
@@ -1394,11 +1874,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 94
       },
       "id": 106,
       "panels": [],
-      "title": "\ud83d\udd27 System Health",
+      "title": "🔧 System Health & Status",
       "type": "row"
     },
     {
@@ -1417,7 +1897,7 @@
                 "0": {
                   "color": "green",
                   "index": 0,
-                  "text": "OK"
+                  "text": "✅ Healthy"
                 }
               },
               "type": "value"
@@ -1428,7 +1908,7 @@
                 "result": {
                   "color": "red",
                   "index": 1,
-                  "text": "RESTARTED"
+                  "text": "🔄 Restarted"
                 },
                 "to": 999
               },
@@ -1453,12 +1933,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 8,
+        "h": 7,
+        "w": 6,
         "x": 0,
-        "y": 51
+        "y": 95
       },
-      "id": 60,
+      "id": 30,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -1481,67 +1961,7 @@
           "refId": "A"
         }
       ],
-      "title": "\ud83d\udd04 Worker Restarts",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 8,
-        "y": 51
-      },
-      "id": 61,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "expr": "sum(increase(voltr_scrape_errors_total[1h])) by (asset)",
-          "legendFormat": "{{asset}}",
-          "refId": "A"
-        }
-      ],
-      "title": "\u26a0\ufe0f API Scrape Errors (1h)",
+      "title": "🔄 Worker Status",
       "type": "stat"
     },
     {
@@ -1577,12 +1997,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 16,
-        "y": 51
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 95
       },
-      "id": 62,
+      "id": 31,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -1601,11 +2021,131 @@
       "targets": [
         {
           "expr": "voltr_scrape_duration_seconds",
-          "legendFormat": "Scrape Duration",
+          "legendFormat": "API Response Time",
           "refId": "A"
         }
       ],
-      "title": "\u23f1\ufe0f Voltr API Scrape Time",
+      "title": "⏱️ API Response Time",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 95
+      },
+      "id": 32,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(voltr_scrape_errors_total{asset=~\"$asset\"}[1h]))",
+          "legendFormat": "API Errors (1h)",
+          "refId": "A"
+        }
+      ],
+      "title": "⚠️ API Scrape Errors (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 95
+      },
+      "id": 33,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(increase(loop_errors_total[1h]))",
+          "legendFormat": "Loop Errors (1h)",
+          "refId": "A"
+        }
+      ],
+      "title": "🔁 Loop Errors (1h)",
       "type": "stat"
     }
   ],
@@ -1616,7 +2156,8 @@
     "vault",
     "rebalancer",
     "hubra",
-    "voltr"
+    "voltr",
+    "comprehensive"
   ],
   "templating": {
     "list": [
@@ -1630,15 +2171,15 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(voltr_vault_tvl_usd, asset)",
+        "definition": "label_values(vault_total_value, asset)",
         "hide": 0,
         "includeAll": true,
-        "label": "Vault",
+        "label": "Asset",
         "multi": true,
         "name": "asset",
         "options": [],
         "query": {
-          "query": "label_values(voltr_vault_tvl_usd, asset)",
+          "query": "label_values(vault_total_value, asset)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -1655,8 +2196,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Hubra Vault Rebalancer",
-  "uid": "hubra-rebalancer",
+  "title": "Vault Rebalancer Dashboard",
+  "uid": "vault-rebalancer-2026",
   "version": 1,
   "weekStart": ""
 }

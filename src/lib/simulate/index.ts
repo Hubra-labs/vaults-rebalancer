@@ -215,6 +215,8 @@ async function resolveYieldWinner(
     workerMetrics.set("yield_winner_info", 1, {
       strategy_id: winner.strategy.id,
       provider: winner.market.provider.name,
+      pool_pubkey: winner.strategy.address.toString(),
+      vault_address: config.voltrVaultAddress.toString(),
     });
 
     logger.info(
