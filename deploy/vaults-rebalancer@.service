@@ -5,11 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=copilot
-WorkingDirectory=/home/copilot/vaults-rebalancer
+User=root
+WorkingDirectory=/root/.openclaw/workspace-blaze/vaults-rebalancer
 
-EnvironmentFile=/home/copilot/vaults-rebalancer/.env
-EnvironmentFile=/home/copilot/vaults-rebalancer/.env-%i
+EnvironmentFile=/root/.openclaw/workspace-blaze/vaults-rebalancer/.env
+EnvironmentFile=/root/.openclaw/workspace-blaze/vaults-rebalancer/.env-%i
 Environment=ENV_FILE=.env-%i
 
 ExecStart=/usr/bin/node dist/src/index.js

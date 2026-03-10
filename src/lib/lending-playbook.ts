@@ -3,6 +3,7 @@ import { logger } from "./utils";
 import { workerMetrics } from "./metrics-bridge";
 import { StrategyConfig, strategyRegistry } from "./strategy-config";
 import { toBase58 } from "./convert";
+import { getDriftVaultOpportunities, getDriftOpportunitiesForAsset, clearDriftCache, getDriftCacheStatus } from "./drift-vaults";
 
 // Cache configuration
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -63,6 +64,12 @@ export interface LendingOpportunity {
       address: string;
       symbol: string;
       decimals: number;
+    };
+    driftMetrics?: {
+      "1d"?: number;
+      "4d"?: number;
+      "7d"?: number;
+      "30d"?: number;
     };
   };
 }
@@ -225,6 +232,7 @@ async function fetchFromDialect(): Promise<LendingOpportunity[]> {
 
 /**
  * Get lending opportunities with caching (10 min TTL)
+ * Merges opportunities from both Dialect and Drift APIs
  */
 export async function getLendingOpportunities(): Promise<LendingOpportunity[]> {
   const now = Date.now();
@@ -238,40 +246,108 @@ export async function getLendingOpportunities(): Promise<LendingOpportunity[]> {
     return opportunitiesCache.data;
   }
 
-  // Fetch fresh data
-  logger.info("Fetching fresh lending opportunities from Dialect API");
-  const opportunities = await fetchFromDialect();
+  // Fetch fresh data from both Dialect and Drift
+  logger.info("Fetching fresh lending opportunities from Dialect and Drift APIs");
+  
+  let dialectOpportunities: LendingOpportunity[] = [];
+  let driftOpportunities: LendingOpportunity[] = [];
+  
+  // Fetch from Dialect (existing functionality)
+  try {
+    dialectOpportunities = await fetchFromDialect();
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch opportunities from Dialect API");
+    workerMetrics.inc("yield_api_calls_total", { provider: "dialect", status: "error" });
+    // Continue with empty dialect data rather than failing completely
+  }
+  
+  // Fetch from Drift (new functionality)
+  try {
+    driftOpportunities = await getDriftVaultOpportunities();
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch opportunities from Drift API");
+    workerMetrics.inc("yield_api_calls_total", { provider: "drift", status: "error" });
+    // Continue with empty drift data rather than failing completely
+  }
+
+  // Merge and deduplicate opportunities
+  const allOpportunities = [...dialectOpportunities, ...driftOpportunities];
+  
+  // Deduplicate by highest APY (existing logic)
+  const deduplicated = filterDuplicatesByHighestApy(allOpportunities);
+  
+  // Sort by APY descending
+  const sorted = deduplicated.sort((a, b) => b.depositApy - a.depositApy);
 
   // Update cache
   opportunitiesCache = {
-    data: opportunities,
+    data: sorted,
     timestamp: now,
   };
 
-  return opportunities;
+  logger.info(
+    { 
+      dialect: dialectOpportunities.length, 
+      drift: driftOpportunities.length, 
+      total: sorted.length,
+      topAPY: sorted[0]?.depositApy || 0
+    },
+    "Merged lending opportunities from Dialect and Drift"
+  );
+
+  return sorted;
 }
 
 /**
  * Get opportunities filtered by asset mint address
+ * Includes both Dialect and Drift opportunities
  */
 export async function getOpportunitiesForAsset(assetMint: string): Promise<LendingOpportunity[]> {
-  const opportunities = await getLendingOpportunities();
-  
   // Convert assetMint to base58 if it's an Address type
   const mintAddress = typeof assetMint === "string" ? assetMint : toBase58(assetMint);
   
-  return opportunities.filter(opp => 
+  // Get all opportunities (which now includes both Dialect and Drift)
+  const allOpportunities = await getLendingOpportunities();
+  
+  // Filter by asset mint address
+  const filtered = allOpportunities.filter(opp => 
     opp.token?.address === mintAddress || 
-    opp.tokenA?.address === mintAddress
+    opp.tokenA?.address === mintAddress ||
+    opp.additionalData?.vaultAddress === mintAddress  // Drift vaults
   );
+
+  logger.debug(
+    { 
+      assetMint: mintAddress, 
+      totalCount: allOpportunities.length,
+      filteredCount: filtered.length,
+      providers: Array.from(new Set(filtered.map(o => o.provider.name)))
+    },
+    "Filtered opportunities for asset"
+  );
+
+  return filtered;
 }
 
 /**
  * Match an opportunity to a configured strategy
  */
 export function matchOpportunityToStrategy(opportunity: LendingOpportunity): MatchedOpportunity | null {
+  // Match Drift vaults by provider
+  if (opportunity.provider.id === "drift") {
+    const strategy = strategyRegistry.strategies.find(s => s.type === "driftVault");
+    if (strategy) {
+      return { market: opportunity, opportunity, strategy };
+    }
+    // Fallback to generic strategy if drift-specific not found
+    const genericStrategy = strategyRegistry.strategies.find(s => s.type === "lending");
+    if (genericStrategy) {
+      return { market: opportunity, opportunity, strategy: genericStrategy };
+    }
+  }
+
   // Match Kamino vaults by vault address
-  if (opportunity.additionalData?.vaultAddress) {
+  if (opportunity.additionalData?.vaultAddress && opportunity.provider.id !== "drift") {
     const strategy = strategyRegistry.strategies.find(
       s => s.type === "kaminoVault" && s.address === opportunity.additionalData?.vaultAddress
     );
@@ -342,20 +418,41 @@ export async function selectBestOpportunity(assetMint: string): Promise<MatchedO
  */
 export function clearCache(): void {
   opportunitiesCache = null;
-  logger.info("Lending opportunities cache cleared");
+  // Also clear drift cache
+  try {
+    clearDriftCache();
+  } catch (error) {
+    logger.warn({ error }, "Failed to clear drift cache");
+  }
+  logger.info("All lending opportunities caches cleared");
 }
 
 /**
  * Get cache status for monitoring
  */
-export function getCacheStatus(): { isCached: boolean; ageMs: number | null; entryCount: number } {
-  if (!opportunitiesCache) {
-    return { isCached: false, ageMs: null, entryCount: 0 };
-  }
-  
-  return {
+export function getCacheStatus(): { 
+  isCached: boolean; 
+  ageMs: number | null; 
+  entryCount: number;
+  drift?: { isCached: boolean; ageMs: number | null; entryCount: number };
+} {
+  const dialectStatus = opportunitiesCache ? {
     isCached: true,
     ageMs: Date.now() - opportunitiesCache.timestamp,
     entryCount: opportunitiesCache.data.length,
+  } : { isCached: false, ageMs: null, entryCount: 0 };
+
+  // Get drift cache status
+  let driftStatus;
+  try {
+    driftStatus = getDriftCacheStatus();
+  } catch (error) {
+    logger.warn({ error }, "Failed to get drift cache status");
+    driftStatus = { isCached: false, ageMs: null, entryCount: 0 };
+  }
+
+  return {
+    ...dialectStatus,
+    drift: driftStatus,
   };
 }
