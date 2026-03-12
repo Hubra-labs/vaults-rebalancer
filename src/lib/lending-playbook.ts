@@ -8,6 +8,31 @@ import { getDriftVaultOpportunities, getDriftOpportunitiesForAsset, clearDriftCa
 // Cache configuration
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+// ── Approved pool whitelist (built from strategy registry at boot) ───────────
+// Kamino vault addresses are whitelisted individually; provider-level types
+// (jupiter, drift, kamino-market) are whitelisted as a set of provider ids.
+const approvedVaultAddresses = new Set<string>(
+  strategyRegistry.kaminoVaults.map((s) => String(s.address))
+);
+const approvedProviderIds = new Set<string>();
+if (strategyRegistry.strategies.some((s) => s.type === "jupiterLend")) {
+  approvedProviderIds.add("jupiter");
+}
+if (strategyRegistry.driftEarns.length > 0) {
+  approvedProviderIds.add("drift");
+}
+if (strategyRegistry.kaminoMarkets.length > 0) {
+  approvedProviderIds.add("kamino");
+}
+
+logger.info(
+  {
+    approvedVaultAddresses: Array.from(approvedVaultAddresses),
+    approvedProviderIds: Array.from(approvedProviderIds),
+  },
+  "Built approved pool whitelist from strategy registry"
+);
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -129,30 +154,51 @@ function findAssetGroup(symbol: string): string {
 }
 
 /**
- * Filter duplicates by keeping the highest APY for each token
+ * Filter opportunities to only those matching an approved/configured strategy.
+ *
+ * - Kamino vaults: kept if additionalData.vaultAddress is in approvedVaultAddresses
+ * - Jupiter / Drift / Kamino-market: kept if their provider id is whitelisted
+ *
+ * This replaces the old filterDuplicatesByHighestApy which collapsed all vaults
+ * for the same underlying token into a single entry, breaking multi-vault setups.
  */
-function filterDuplicatesByHighestApy(opportunities: LendingOpportunity[]): LendingOpportunity[] {
-  const assetMap = new Map<string, LendingOpportunity>();
+function filterToApprovedPools(opportunities: LendingOpportunity[]): LendingOpportunity[] {
+  const approved: LendingOpportunity[] = [];
+  const rejected: string[] = [];
 
-  opportunities.forEach((opportunity) => {
-    const assetKey =
-      opportunity.token?.address ||
-      opportunity.tokenA?.address ||
-      opportunity.token?.symbol ||
-      opportunity.tokenA?.symbol ||
-      opportunity.id;
-
-    if (!assetKey) return;
-
-    const currentApy = opportunity.depositApy || 0;
-    const existingOpportunity = assetMap.get(assetKey);
-
-    if (!existingOpportunity || currentApy > (existingOpportunity.depositApy || 0)) {
-      assetMap.set(assetKey, opportunity);
+  for (const opp of opportunities) {
+    // Kamino vaults: match by vault address
+    if (opp.additionalData?.vaultAddress && opp.provider.id !== "drift") {
+      if (approvedVaultAddresses.has(opp.additionalData.vaultAddress)) {
+        approved.push(opp);
+      } else {
+        rejected.push(`${opp.id} (vault ${opp.additionalData.vaultAddress})`);
+      }
+      continue;
     }
-  });
 
-  return Array.from(assetMap.values());
+    // Provider-level matching (jupiter, drift, kamino-market)
+    if (approvedProviderIds.has(opp.provider.id)) {
+      approved.push(opp);
+      continue;
+    }
+
+    rejected.push(`${opp.id} (provider ${opp.provider.id})`);
+  }
+
+  logger.info(
+    { approved: approved.length, rejected: rejected.length },
+    "Filtered opportunities to approved pools"
+  );
+  logger.debug(
+    {
+      approvedIds: approved.map((o) => o.id),
+      rejectedIds: rejected,
+    },
+    "Approved pool filter details"
+  );
+
+  return approved;
 }
 
 /**
@@ -205,17 +251,17 @@ async function fetchFromDialect(): Promise<LendingOpportunity[]> {
         ),
       }));
 
-    // Deduplicate by highest APY
-    const deduplicated = filterDuplicatesByHighestApy(filtered);
-    
+    // Filter to only approved/configured pools (replaces broken dedup-by-token)
+    const approved = filterToApprovedPools(filtered);
+
     // Sort by APY descending
-    const sorted = deduplicated.sort((a, b) => b.depositApy - a.depositApy);
+    const sorted = approved.sort((a, b) => b.depositApy - a.depositApy);
 
     workerMetrics.inc("yield_api_calls_total", { status: "success" });
     workerMetrics.observe("yield_api_duration_seconds", (Date.now() - fetchStart) / 1000);
 
     logger.info(
-      { total: data.markets.length, filtered: sorted.length },
+      { total: data.markets.length, providerFiltered: filtered.length, approved: sorted.length },
       "Fetched lending opportunities from Dialect API"
     );
 
@@ -270,14 +316,11 @@ export async function getLendingOpportunities(): Promise<LendingOpportunity[]> {
     // Continue with empty drift data rather than failing completely
   }
 
-  // Merge and deduplicate opportunities
+  // Merge opportunities (both sources are already whitelist-filtered)
   const allOpportunities = [...dialectOpportunities, ...driftOpportunities];
   
-  // Deduplicate by highest APY (existing logic)
-  const deduplicated = filterDuplicatesByHighestApy(allOpportunities);
-  
   // Sort by APY descending
-  const sorted = deduplicated.sort((a, b) => b.depositApy - a.depositApy);
+  const sorted = allOpportunities.sort((a, b) => b.depositApy - a.depositApy);
 
   // Update cache
   opportunitiesCache = {
