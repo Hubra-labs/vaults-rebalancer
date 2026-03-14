@@ -17,6 +17,7 @@ import { runRefreshLoop } from "./refresh_loop";
 import { runClaimKvaultRewardLoop } from "./claim_kvault_reward_loop";
 import { runHarvestFeeLoop } from "./harvest_fee_loop";
 import { runClaimKmarketRewardLoop } from "./claim_kmarket_reward_loop";
+import { runMetricsLoop } from "./metrics_loop";
 import { register, applyMetricMessage, workerRestarts, MetricMessage } from "./lib/metrics";
 import { getLendingOpportunities, getCacheStatus, clearCache } from "./lib/lending-playbook";
 
@@ -241,6 +242,13 @@ async function main() {
   if (config.enableHarvestFeeLoop) {
     logger.info("Starting harvest fee loop");
     recursiveTryCatch(() => runHarvestFeeLoop(), "harvest-fee-loop");
+  }
+
+  // Independent metrics loop — always runs when metrics are enabled
+  // Fetches vault state from Voltr API every 60s so Grafana is never stale
+  if (config.metricsEnabled) {
+    logger.info("Starting independent metrics refresh loop");
+    recursiveTryCatch(() => runMetricsLoop(), "metrics-loop");
   }
 }
 

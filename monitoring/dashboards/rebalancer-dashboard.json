@@ -20,7 +20,7 @@
       },
       "id": 100,
       "panels": [],
-      "title": "🗂️ Vaults Overview",
+      "title": "\ud83d\uddc2\ufe0f Vaults Overview",
       "type": "row"
     },
     {
@@ -175,7 +175,7 @@
           "refId": "C"
         }
       ],
-      "title": "🏦 All Vaults with Full IDs",
+      "title": "\ud83c\udfe6 All Vaults with Full IDs",
       "transformations": [
         {
           "id": "joinByField",
@@ -227,7 +227,7 @@
       },
       "id": 160,
       "panels": [],
-      "title": "🔑 Vault Pubkeys",
+      "title": "\ud83d\udd11 Vault Pubkeys",
       "type": "row"
     },
     {
@@ -310,7 +310,7 @@
           "refId": "A"
         }
       ],
-      "title": "🔑 Vault Public Keys",
+      "title": "\ud83d\udd11 Vault Public Keys",
       "transformations": [
         {
           "id": "organize",
@@ -348,7 +348,7 @@
       },
       "id": 200,
       "panels": [],
-      "title": "📋 Strategy Overview",
+      "title": "\ud83d\udccb Strategy Overview",
       "type": "row"
     },
     {
@@ -409,7 +409,7 @@
           "refId": "A"
         }
       ],
-      "title": "📊 Total Strategies",
+      "title": "\ud83d\udcca Total Strategies",
       "type": "stat"
     },
     {
@@ -470,7 +470,7 @@
           "refId": "A"
         }
       ],
-      "title": "🏊 Number of Pools",
+      "title": "\ud83c\udfca Number of Pools",
       "type": "stat"
     },
     {
@@ -483,7 +483,7 @@
       },
       "id": 104,
       "panels": [],
-      "title": "💰 TVL & Idle Funds",
+      "title": "\ud83d\udcb0 TVL & Idle Funds",
       "type": "row"
     },
     {
@@ -539,7 +539,7 @@
           "refId": "A"
         }
       ],
-      "title": "💰 Total TVL",
+      "title": "\ud83d\udcb0 Total TVL",
       "type": "stat"
     },
     {
@@ -550,8 +550,42 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Balance ($)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "currencyUSD",
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -569,33 +603,28 @@
                 "value": 100000
               }
             ]
-          },
-          "unit": "currencyUSD"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 8,
+        "h": 8,
+        "w": 12,
         "x": 8,
         "y": 29
       },
       "id": 20,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         },
-        "textMode": "auto"
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showValues": "current"
+        }
       },
-      "pluginVersion": "10.0.0",
       "targets": [
         {
           "expr": "sum(vault_idle_balance{asset=~\"$asset\"})",
@@ -603,8 +632,8 @@
           "refId": "A"
         }
       ],
-      "title": "💤 Total Idle Funds",
-      "type": "stat"
+      "title": "\ud83d\udca4 Idle Funds Over Time",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -659,7 +688,7 @@
           "refId": "A"
         }
       ],
-      "title": "💤 Idle Funds %",
+      "title": "\ud83d\udca4 Idle Funds %",
       "type": "stat"
     },
     {
@@ -767,7 +796,7 @@
           "refId": "B"
         }
       ],
-      "title": "💰 TVL vs Idle Funds Over Time",
+      "title": "\ud83d\udcb0 TVL vs Idle Funds Over Time",
       "type": "timeseries"
     },
     {
@@ -780,7 +809,7 @@
       },
       "id": 101,
       "panels": [],
-      "title": "🏊 Pool Allocations",
+      "title": "\ud83c\udfca Pool Allocations",
       "type": "row"
     },
     {
@@ -846,7 +875,7 @@
           "refId": "A"
         }
       ],
-      "title": "💰 Current Pool Allocations",
+      "title": "\ud83d\udcb0 Current Pool Allocations",
       "type": "piechart"
     },
     {
@@ -933,7 +962,7 @@
           "refId": "A"
         }
       ],
-      "title": "📈 Historical Pool Allocations",
+      "title": "\ud83d\udcc8 Historical Pool Allocations",
       "type": "timeseries"
     },
     {
@@ -946,7 +975,7 @@
       },
       "id": 102,
       "panels": [],
-      "title": "📊 APY Metrics",
+      "title": "\ud83d\udcca APY Metrics",
       "type": "row"
     },
     {
@@ -1002,7 +1031,7 @@
           "refId": "A"
         }
       ],
-      "title": "📈 Average APY",
+      "title": "\ud83d\udcc8 Average APY",
       "type": "stat"
     },
     {
@@ -1066,7 +1095,7 @@
           "refId": "A"
         }
       ],
-      "title": "🏆 Winning APY",
+      "title": "\ud83c\udfc6 Winning APY",
       "type": "stat"
     },
     {
@@ -1122,7 +1151,7 @@
           "refId": "A"
         }
       ],
-      "title": "🔥 Max Vault APY",
+      "title": "\ud83d\udd25 Max Vault APY",
       "type": "stat"
     },
     {
@@ -1178,7 +1207,7 @@
           "refId": "A"
         }
       ],
-      "title": "🐌 Min Vault APY",
+      "title": "\ud83d\udc0c Min Vault APY",
       "type": "stat"
     },
     {
@@ -1272,7 +1301,7 @@
           "refId": "B"
         }
       ],
-      "title": "📈 APY Trends Over Time",
+      "title": "\ud83d\udcc8 APY Trends Over Time",
       "type": "timeseries"
     },
     {
@@ -1285,7 +1314,7 @@
       },
       "id": 103,
       "panels": [],
-      "title": "🔄 Rebalancing Activity",
+      "title": "\ud83d\udd04 Rebalancing Activity",
       "type": "row"
     },
     {
@@ -1341,7 +1370,7 @@
           "refId": "A"
         }
       ],
-      "title": "🔄 Rebalances (24h)",
+      "title": "\ud83d\udd04 Rebalances (24h)",
       "type": "stat"
     },
     {
@@ -1405,7 +1434,7 @@
           "refId": "A"
         }
       ],
-      "title": "✅ Success Rate (24h)",
+      "title": "\u2705 Success Rate (24h)",
       "type": "stat"
     },
     {
@@ -1469,7 +1498,7 @@
           "refId": "A"
         }
       ],
-      "title": "⏱️ Duration p95",
+      "title": "\u23f1\ufe0f Duration p95",
       "type": "stat"
     },
     {
@@ -1525,7 +1554,7 @@
           "refId": "A"
         }
       ],
-      "title": "🕐 Last Rebalance",
+      "title": "\ud83d\udd50 Last Rebalance",
       "type": "stat"
     },
     {
@@ -1612,7 +1641,7 @@
           "refId": "A"
         }
       ],
-      "title": "🔄 Rebalance Activity Timeline",
+      "title": "\ud83d\udd04 Rebalance Activity Timeline",
       "type": "timeseries"
     },
     {
@@ -1625,7 +1654,7 @@
       },
       "id": 105,
       "panels": [],
-      "title": "💸 Transaction Costs & Fees",
+      "title": "\ud83d\udcb8 Transaction Costs & Fees",
       "type": "row"
     },
     {
@@ -1689,7 +1718,7 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ Avg Compute Units",
+      "title": "\u26a1 Avg Compute Units",
       "type": "stat"
     },
     {
@@ -1753,7 +1782,7 @@
           "refId": "A"
         }
       ],
-      "title": "💰 Avg Priority Fee (μLamports)",
+      "title": "\ud83d\udcb0 Avg Priority Fee (\u03bcLamports)",
       "type": "stat"
     },
     {
@@ -1809,7 +1838,7 @@
           "refId": "A"
         }
       ],
-      "title": "📝 Transactions (24h)",
+      "title": "\ud83d\udcdd Transactions (24h)",
       "type": "stat"
     },
     {
@@ -1865,7 +1894,7 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ Total Compute Units (24h)",
+      "title": "\u26a1 Total Compute Units (24h)",
       "type": "stat"
     },
     {
@@ -1878,7 +1907,7 @@
       },
       "id": 106,
       "panels": [],
-      "title": "🔧 System Health & Status",
+      "title": "\ud83d\udd27 System Health & Status",
       "type": "row"
     },
     {
@@ -1897,7 +1926,7 @@
                 "0": {
                   "color": "green",
                   "index": 0,
-                  "text": "✅ Healthy"
+                  "text": "\u2705 Healthy"
                 }
               },
               "type": "value"
@@ -1908,7 +1937,7 @@
                 "result": {
                   "color": "red",
                   "index": 1,
-                  "text": "🔄 Restarted"
+                  "text": "\ud83d\udd04 Restarted"
                 },
                 "to": 999
               },
@@ -1961,7 +1990,7 @@
           "refId": "A"
         }
       ],
-      "title": "🔄 Worker Status",
+      "title": "\ud83d\udd04 Worker Status",
       "type": "stat"
     },
     {
@@ -2025,7 +2054,7 @@
           "refId": "A"
         }
       ],
-      "title": "⏱️ API Response Time",
+      "title": "\u23f1\ufe0f API Response Time",
       "type": "stat"
     },
     {
@@ -2085,7 +2114,7 @@
           "refId": "A"
         }
       ],
-      "title": "⚠️ API Scrape Errors (1h)",
+      "title": "\u26a0\ufe0f API Scrape Errors (1h)",
       "type": "stat"
     },
     {
@@ -2145,7 +2174,7 @@
           "refId": "A"
         }
       ],
-      "title": "🔁 Loop Errors (1h)",
+      "title": "\ud83d\udd01 Loop Errors (1h)",
       "type": "stat"
     }
   ],
@@ -2197,7 +2226,6 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Vault Rebalancer Dashboard",
-  "uid": "vault-rebalancer-2026",
   "version": 1,
   "weekStart": ""
 }
