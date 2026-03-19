@@ -168,23 +168,22 @@
       ],
       "transformations": [
         {
-          "id": "merge",
-          "options": {}
+          "id": "joinByField",
+          "options": {
+            "byField": "asset",
+            "mode": "outer"
+          }
         },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
               "Time 1": true,
               "Time 2": true,
-              "__name__": true,
               "__name__ 1": true,
               "__name__ 2": true,
-              "instance": true,
               "instance 1": true,
               "instance 2": true,
-              "job": true,
               "job 1": true,
               "job 2": true,
               "strategy_type": true,
