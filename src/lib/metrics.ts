@@ -78,7 +78,7 @@ export const rebalanceErrorsTotal = counter({
 export const rebalanceFallbackTotal = counter({
   name: "rebalance_fallback_total",
   help: "Equal-weight fallback count",
-  labelNames: ["reason"],
+  labelNames: ["reason", "strategy"],
 });
 
 export const yieldApiCallsTotal = counter({
