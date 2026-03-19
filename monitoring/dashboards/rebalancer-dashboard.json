@@ -139,27 +139,12 @@
       ]
     },
     {
-      "type": "text",
-      "title": "\ud83c\udfca Pool Addresses (Kamino Vaults)",
-      "gridPos": {
-        "h": 6,
-        "w": 24,
-        "x": 0,
-        "y": 6
-      },
-      "id": 109,
-      "options": {
-        "mode": "markdown",
-        "content": "| Strategy | Pool Address |\n|----------|--------------|\n| **steakhouse-usd1-high-yield** | `2eCcHyUfFmiLX5RnNY21Qfndqww7TmwaKBgNXX5Unu7o` |\n| **gauntlet-usdc-frontier** | `GFiW6edsrtHZd4Vnz2qTSurVasRrgKrXE1ouHNtCVsft` |\n| **elemental-usdg-optimizer** | `DJbRxuBckoJpFVUNtWx94NghcthfGaRV5NRmEazUaddE` |\n| **elemental-usds-optimizer** | `8wDtedCoYq2dH9UT1CoDC21v6kPHe32UNydhcvA8U9VS` |\n| **allez-usdt** | `A1USdT5BhSBpWiH4W6oZeykCDr9vq56qXVkMFhZjN48o` |"
-      }
-    },
-    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 10
       },
       "id": 100,
       "panels": [],
@@ -194,7 +179,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 17
+        "y": 11
       },
       "id": 1,
       "options": {
@@ -258,7 +243,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 17
+        "y": 11
       },
       "id": 2,
       "options": {
@@ -322,7 +307,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 17
+        "y": 11
       },
       "id": 3,
       "options": {
@@ -378,7 +363,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 17
+        "y": 11
       },
       "id": 4,
       "options": {
@@ -412,7 +397,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 15
       },
       "id": 101,
       "panels": [],
@@ -479,7 +464,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 16
       },
       "id": 10,
       "options": {
@@ -566,7 +551,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 16
       },
       "id": 11,
       "options": {
@@ -604,7 +589,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 24
       },
       "id": 102,
       "panels": [],
@@ -671,7 +656,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 25
       },
       "id": 20,
       "options": {
@@ -730,7 +715,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 31
+        "y": 25
       },
       "id": 21,
       "options": {
@@ -786,7 +771,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 31
+        "y": 25
       },
       "id": 22,
       "options": {
@@ -850,7 +835,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 35
+        "y": 29
       },
       "id": 23,
       "options": {
@@ -906,7 +891,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 35
+        "y": 29
       },
       "id": 24,
       "options": {
@@ -940,7 +925,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 33
       },
       "id": 103,
       "panels": [],
@@ -973,7 +958,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 40
+        "y": 34
       },
       "id": 30,
       "options": {
@@ -1071,7 +1056,7 @@
         "h": 8,
         "w": 16,
         "x": 8,
-        "y": 40
+        "y": 34
       },
       "id": 31,
       "options": {
@@ -1104,7 +1089,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 42
       },
       "id": 104,
       "panels": [],
@@ -1171,7 +1156,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 49
+        "y": 43
       },
       "id": 40,
       "options": {
@@ -1259,7 +1244,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 49
+        "y": 43
       },
       "id": 41,
       "options": {
@@ -1293,7 +1278,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 55
+        "y": 49
       },
       "id": 105,
       "panels": [],
@@ -1328,7 +1313,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 56
+        "y": 50
       },
       "id": 50,
       "options": {
@@ -1416,7 +1401,7 @@
         "h": 6,
         "w": 16,
         "x": 8,
-        "y": 56
+        "y": 50
       },
       "id": 51,
       "options": {
@@ -1449,7 +1434,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 56
       },
       "id": 106,
       "panels": [],
@@ -1511,7 +1496,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 63
+        "y": 57
       },
       "id": 60,
       "options": {
@@ -1571,7 +1556,7 @@
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 63
+        "y": 57
       },
       "id": 61,
       "options": {
@@ -1635,7 +1620,7 @@
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 63
+        "y": 57
       },
       "id": 62,
       "options": {
