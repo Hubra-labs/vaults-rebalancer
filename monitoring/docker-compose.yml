@@ -33,6 +33,12 @@ services:
       - prometheus
     restart: unless-stopped
 
+  voltr-exporter:
+    build: ./voltr-exporter
+    ports:
+      - "127.0.0.1:9101:9101"
+    restart: unless-stopped
+
 volumes:
   prometheus_data:
   grafana_data:

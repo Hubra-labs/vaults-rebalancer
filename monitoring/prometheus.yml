@@ -20,3 +20,7 @@ scrape_configs:
       - targets: ["host.docker.internal:8084"]
         labels:
           asset: "usdt"
+
+  - job_name: "voltr-exporter"
+    static_configs:
+      - targets: ["voltr-exporter:9101"]

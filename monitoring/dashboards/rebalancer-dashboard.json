@@ -84,7 +84,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 220
+                "value": 200
               }
             ]
           },
@@ -96,7 +96,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 380
+                "value": 360
               }
             ]
           },
@@ -108,7 +108,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 60
+                "value": 55
               }
             ]
           },
@@ -123,8 +123,12 @@
                 "value": "percent"
               },
               {
+                "id": "decimals",
+                "value": 2
+              },
+              {
                 "id": "custom.width",
-                "value": 80
+                "value": 70
               }
             ]
           }
@@ -150,30 +154,55 @@
           "format": "table",
           "instant": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "voltr_vault_apy_percent{period=\"1d\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
         }
       ],
       "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
               "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
               "instance": true,
+              "instance 1": true,
+              "instance 2": true,
               "job": true,
-              "strategy_type": true
+              "job 1": true,
+              "job 2": true,
+              "strategy_type": true,
+              "period": true
             },
             "indexByName": {
               "asset": 0,
               "strategy_id": 1,
               "pool_address": 2,
-              "Value": 3
+              "Value #A": 3,
+              "Value #B": 4
             },
             "renameByName": {
               "asset": "Asset",
               "strategy_id": "Strategy",
               "pool_address": "Pool Address",
-              "Value": "TVL"
+              "Value #A": "TVL",
+              "Value #B": "APY"
             }
           }
         }
