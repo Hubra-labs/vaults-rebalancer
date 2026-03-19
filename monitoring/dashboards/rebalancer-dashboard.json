@@ -28,7 +28,7 @@
       "type": "table",
       "title": "\ud83d\udcca Current Allocations",
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 12,
         "y": 0
@@ -41,8 +41,9 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "align": "auto",
-            "displayMode": "auto"
+            "align": "left",
+            "displayMode": "auto",
+            "filterable": false
           },
           "thresholds": {
             "mode": "absolute",
@@ -58,7 +59,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value"
+              "options": "TVL"
             },
             "properties": [
               {
@@ -67,31 +68,89 @@
               },
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 90
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "strategy_id"
+              "options": "APY"
             },
             "properties": [
               {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
                 "id": "custom.width",
-                "value": 200
+                "value": 70
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "asset"
+              "options": "Pool"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 60
+                "value": 370
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Asset"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 55
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pool"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "steakhouse-usd1-high-yield": {
+                        "text": "2eCcHyUfFmiLX5RnNY21Qfndqww7TmwaKBgNXX5Unu7o",
+                        "index": 0
+                      },
+                      "gauntlet-usdc-frontier": {
+                        "text": "GFiW6edsrtHZd4Vnz2qTSurVasRrgKrXE1ouHNtCVsft",
+                        "index": 1
+                      },
+                      "elemental-usdg-optimizer": {
+                        "text": "DJbRxuBckoJpFVUNtWx94NghcthfGaRV5NRmEazUaddE",
+                        "index": 2
+                      },
+                      "elemental-usds-optimizer": {
+                        "text": "8wDtedCoYq2dH9UT1CoDC21v6kPHe32UNydhcvA8U9VS",
+                        "index": 3
+                      },
+                      "allez-usdt": {
+                        "text": "A1USdT5BhSBpWiH4W6oZeykCDr9vq56qXVkMFhZjN48o",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -101,10 +160,11 @@
         "showHeader": true,
         "sortBy": [
           {
-            "displayName": "Value",
+            "displayName": "TVL",
             "desc": true
           }
-        ]
+        ],
+        "cellHeight": "sm"
       },
       "targets": [
         {
@@ -116,24 +176,65 @@
           "format": "table",
           "instant": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "yield_winner_apy * 100",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
         }
       ],
       "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
               "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
               "instance": true,
+              "instance 1": true,
+              "instance 2": true,
               "job": true,
+              "job 1": true,
+              "job 2": true,
               "strategy_type": true
+            },
+            "indexByName": {
+              "asset": 0,
+              "strategy_id": 1,
+              "Value #A": 2,
+              "Value #B": 3
             },
             "renameByName": {
               "asset": "Asset",
-              "strategy_id": "Strategy",
-              "Value": "TVL"
+              "strategy_id": "Pool",
+              "Value #A": "TVL",
+              "Value #B": "APY"
             }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "Pool",
+                "destinationType": "string"
+              }
+            ],
+            "fields": {}
           }
         }
       ]
