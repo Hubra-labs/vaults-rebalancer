@@ -61,7 +61,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "yield_winner_info{asset=~\"$asset\"}",
+          "expr": "voltr_vault_info{asset=~\"$asset\"}",
           "legendFormat": "{{vault_address}}",
           "refId": "A"
         }
@@ -128,7 +128,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(vault_total_value)",
+          "expr": "sum(voltr_vault_tvl_usd)",
           "legendFormat": "Total TVL",
           "refId": "A"
         }
@@ -192,7 +192,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(vault_idle_balance)",
+          "expr": "sum(voltr_idle_funds_usd)",
           "legendFormat": "Idle Funds",
           "refId": "A"
         }
@@ -256,7 +256,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "avg(yield_winner_apy)",
+          "expr": "avg(voltr_vault_apy_percent{period=\"1d\"})",
           "legendFormat": "Avg APY",
           "refId": "A"
         }
@@ -412,7 +412,7 @@
       },
       "targets": [
         {
-          "expr": "vault_total_value{asset=~\"$asset\"}",
+          "expr": "voltr_vault_tvl_usd{asset=~\"$asset\"}",
           "legendFormat": "{{asset}}",
           "refId": "A"
         }
@@ -499,12 +499,12 @@
       },
       "targets": [
         {
-          "expr": "yield_winner_apy{asset=~\"$asset\"}",
+          "expr": "voltr_vault_apy_percent{asset=~\"$asset\", period=\"1d\"}",
           "legendFormat": "{{asset}} (1d)",
           "refId": "A"
         },
         {
-          "expr": "yield_winner_apy{asset=~\"$asset\"}",
+          "expr": "voltr_vault_apy_percent{asset=~\"$asset\", period=\"7d\"}",
           "legendFormat": "{{asset}} (7d)",
           "refId": "B"
         }
@@ -917,7 +917,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, strategy_position_value{asset=~\"$asset\"} > 0)",
+          "expr": "topk(10, voltr_pool_allocation_usd{asset=~\"$asset\"} > 0)",
           "legendFormat": "{{asset}} | {{vault_address}} | {{org}} - {{strategy}}",
           "refId": "A"
         }
@@ -1004,7 +1004,7 @@
       },
       "targets": [
         {
-          "expr": "topk(5, strategy_position_value{asset=~\"$asset\"})",
+          "expr": "topk(5, voltr_pool_allocation_usd{asset=~\"$asset\"})",
           "legendFormat": "{{asset}} | {{vault_address}} | {{org}} - {{strategy}}",
           "refId": "A"
         }
@@ -1505,7 +1505,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(increase(yield_api_calls_total[1h])) by (asset)",
+          "expr": "sum(increase(voltr_scrape_errors_total[1h])) by (asset)",
           "legendFormat": "{{asset}}",
           "refId": "A"
         }
@@ -1569,7 +1569,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "yield_api_duration_seconds",
+          "expr": "voltr_scrape_duration_seconds",
           "legendFormat": "Scrape Duration",
           "refId": "A"
         }
@@ -1599,7 +1599,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(vault_total_value, asset)",
+        "definition": "label_values(voltr_vault_tvl_usd, asset)",
         "hide": 0,
         "includeAll": true,
         "label": "Vault",
@@ -1607,7 +1607,7 @@
         "name": "asset",
         "options": [],
         "query": {
-          "query": "label_values(vault_total_value, asset)",
+          "query": "label_values(voltr_vault_tvl_usd, asset)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
