@@ -22,6 +22,7 @@ const boolFlag = (defaultVal: string) =>
 const envSchema = z.object({
   // Core
   YIELD_MARKETS_URL: z.string().min(1, "YIELD_MARKETS_URL is required"),
+  YIELD_MARKETS_API: z.string().min(1, "YIELD_MARKETS_API is required"),
   RPC_URL: z.string().min(1, "RPC_URL is required"),
   RPC_FALLBACK_URL: optionalString,
   MANAGER_SECRET_PATH: optionalString,
@@ -88,6 +89,7 @@ const env = parseConfig();
 
 export const config = {
   yieldMarketsUrl: env.YIELD_MARKETS_URL,
+  yieldMarketsApi: env.YIELD_MARKETS_API,
   rpcUrl: env.RPC_URL,
   rpcFallbackUrl: env.RPC_FALLBACK_URL,
   managerSecretPath: env.MANAGER_SECRET_PATH,
