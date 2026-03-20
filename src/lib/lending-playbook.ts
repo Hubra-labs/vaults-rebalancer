@@ -166,7 +166,12 @@ async function fetchFromDialect(): Promise<LendingOpportunity[]> {
   try {
     const response = await fetch(
       config.yieldMarketsUrl,
-      { signal: controller.signal }
+      {
+        signal: controller.signal,
+        headers: {
+          "x-dialect-client-key": config.yieldMarketsApi,
+        },
+      }
     );
 
     if (!response.ok) {
