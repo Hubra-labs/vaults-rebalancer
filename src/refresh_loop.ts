@@ -22,7 +22,52 @@ import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
 import { strategyRegistry, DriftEarnStrategyConfig } from "./lib/strategy-config";
 import { getManagerKeypair } from "./lib/keypair";
-import { loopIterationsTotal, loopErrorsTotal, txTotal, txDurationSeconds } from "./lib/metrics";
+import {
+  loopIterationsTotal,
+  loopErrorsTotal,
+  txTotal,
+  txDurationSeconds,
+  vaultTotalValue,
+  vaultIdleBalance,
+  strategyPositionValue,
+} from "./lib/metrics";
+
+const VAULT_VALUE_DECIMALS = 6;
+
+async function publishVaultMetrics(voltrClient: VoltrClient) {
+  const vaultAccount = await voltrClient.fetchVaultAccount(
+    toPublicKey(config.voltrVaultAddress)
+  );
+  const totalValue = vaultAccount.asset.totalValue as BN;
+
+  const allReceipts =
+    await voltrClient.fetchAllStrategyInitReceiptAccountsOfVault(
+      toPublicKey(config.voltrVaultAddress)
+    );
+
+  const receiptMap = new Map<string, BN>();
+  for (const r of allReceipts) {
+    receiptMap.set(r.account.strategy.toBase58(), r.account.positionValue as BN);
+  }
+
+  const strategyTotal = Array.from(receiptMap.values()).reduce(
+    (acc, pv) => acc.add(pv),
+    new BN(0)
+  );
+  const idle = totalValue.sub(strategyTotal);
+
+  const divisor = 10 ** VAULT_VALUE_DECIMALS;
+  vaultTotalValue.set(totalValue.toNumber() / divisor);
+  vaultIdleBalance.set(idle.toNumber() / divisor);
+
+  for (const s of strategyRegistry.strategies) {
+    const pv = receiptMap.get(String(s.address)) ?? new BN(0);
+    strategyPositionValue.set(
+      { strategy_id: s.id, strategy_type: s.type },
+      pv.toNumber() / divisor
+    );
+  }
+}
 
 export async function runRefreshLoop() {
   logger.info("🚀 Starting Refresh Bot...");
@@ -48,6 +93,12 @@ export async function runRefreshLoop() {
 
   // Main scheduled loop
   while (!isShuttingDown()) {
+    try {
+      await publishVaultMetrics(voltrClient);
+    } catch (error) {
+      logger.error(error, `[Refresh Loop ${loopCount}] Failed to publish vault metrics`);
+    }
+
     try {
       logger.info(
         `[Refresh Loop ${loopCount}] 🛠️ Executing scheduled refresh strategy...`

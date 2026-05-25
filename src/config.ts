@@ -49,6 +49,7 @@ const envSchema = z.object({
 
   // Health
   HEALTH_SERVER_PORT: z.coerce.number().default(8080),
+  HEALTH_SERVER_BIND_ADDR: z.string().default("127.0.0.1"),
 
   // Feature flags
   ENABLE_REBALANCE_LOOP: boolFlag("true"),
@@ -108,6 +109,7 @@ export const config = {
   maxDilutionPct: env.MAX_DILUTION_PCT,
   yieldApiTimeoutMs: env.YIELD_API_TIMEOUT_MS,
   healthServerPort: env.HEALTH_SERVER_PORT,
+  healthServerBindAddr: env.HEALTH_SERVER_BIND_ADDR,
   logLevel: env.LOG_LEVEL,
 
   // Feature flags

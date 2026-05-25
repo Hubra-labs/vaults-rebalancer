@@ -18,7 +18,6 @@ import { runClaimKvaultRewardLoop } from "./claim_kvault_reward_loop";
 import { runHarvestFeeLoop } from "./harvest_fee_loop";
 import { runClaimKmarketRewardLoop } from "./claim_kmarket_reward_loop";
 import { register, applyMetricMessage, workerRestarts, MetricMessage } from "./lib/metrics";
-import { getLendingOpportunities, getCacheStatus, clearCache } from "./lib/lending-playbook";
 
 // --- Health server ---
 let healthServer: http.Server;
@@ -53,51 +52,15 @@ function startHealthServer(): Promise<void> {
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ status: "triggered" }));
         }
-      } else if (_req.url === "/lending") {
-        // Test endpoint for lending opportunities cache
-        const start = Date.now();
-        getLendingOpportunities()
-          .then((opportunities) => {
-            const duration = Date.now() - start;
-            const cacheStatus = getCacheStatus();
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({
-              count: opportunities.length,
-              durationMs: duration,
-              cache: {
-                hit: cacheStatus.isCached && cacheStatus.ageMs! < 10 * 60 * 1000,
-                ageMs: cacheStatus.ageMs,
-                entries: cacheStatus.entryCount,
-              },
-              sample: opportunities.slice(0, 3).map(o => ({
-                id: o.id,
-                token: o.token?.symbol,
-                apy: (o.depositApy * 100).toFixed(2) + "%",
-                tvl: "$" + Math.round(o.totalDepositUsd).toLocaleString(),
-                provider: o.provider.name,
-              })),
-            }, null, 2));
-          })
-          .catch((err) => {
-            res.writeHead(500, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ error: String(err) }));
-          });
-        return;
-      } else if (_req.url === "/lending/clear" && _req.method === "POST") {
-        // Clear cache for testing
-        clearCache();
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ status: "cache_cleared" }));
-        return;
       } else {
         res.writeHead(404);
         res.end();
       }
     });
 
-    healthServer.listen(config.healthServerPort, () => {
+    healthServer.listen(config.healthServerPort, config.healthServerBindAddr, () => {
       logger.info(
-        { port: config.healthServerPort },
+        { port: config.healthServerPort, bindAddr: config.healthServerBindAddr },
         "Health server listening"
       );
       resolve();

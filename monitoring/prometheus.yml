@@ -5,22 +5,22 @@ global:
 scrape_configs:
   - job_name: "rebalancer"
     static_configs:
-      - targets: ["host.docker.internal:8080"]
+      - targets: ["127.0.0.1:8080"]
         labels:
           asset: "usd1"
-      - targets: ["host.docker.internal:8081"]
+      - targets: ["127.0.0.1:8081"]
         labels:
           asset: "usdc"
-      - targets: ["host.docker.internal:8082"]
+      - targets: ["127.0.0.1:8082"]
         labels:
           asset: "usdg"
-      - targets: ["host.docker.internal:8083"]
+      - targets: ["127.0.0.1:8083"]
         labels:
           asset: "usds"
-      - targets: ["host.docker.internal:8084"]
+      - targets: ["127.0.0.1:8084"]
         labels:
           asset: "usdt"
 
   - job_name: "voltr-exporter"
     static_configs:
-      - targets: ["voltr-exporter:9101"]
+      - targets: ["127.0.0.1:9101"]
