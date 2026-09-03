@@ -3,7 +3,6 @@ import { address } from "@solana/kit";
 // Program IDs (consistent across all vaults)
 export const KAMINO_ADAPTOR_PROGRAM_ID = address("to6Eti9CsC5FGkAtqiPphvKD2hiQiLsS8zWiDBqBPKR");
 export const TRUSTFUL_ADAPTOR_PROGRAM_ID = address("3pnpK9nrs1R65eMV1wqCXkDkhSgN18xb1G5pgYPwoZjJ");
-export const DRIFT_ADAPTOR_PROGRAM_ID = address("EBN93eXs5fHGBABuajQqdsKRkCgaqtJa8vEFD6vKXiP");
 export const JUPITER_ADAPTOR_PROGRAM_ID = address("EW35URAx3LiM13fFK3QxAXfGemHso9HWPixrv7YDY4AM");
 export const KAMINO_FARM_PROGRAM_ID = address("FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr");
 export const KAMINO_FARM_GLOBAL_CONFIG = address("6UodrBjL2ZreDy7QdR4YV1oxqMBjVYSEyrFpctqqwGwL");

@@ -16,11 +16,10 @@ import {
   sendAndConfirmOptimisedTx,
 } from "./lib/solana";
 import { BN } from "@coral-xyz/anchor";
-import { createDepositDEarnStrategyIx } from "./lib/drift";
 import { createDepositJLendStrategyIx } from "./lib/jupiter";
 import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
-import { strategyRegistry, DriftEarnStrategyConfig } from "./lib/strategy-config";
+import { strategyRegistry } from "./lib/strategy-config";
 import { getManagerKeypair } from "./lib/keypair";
 import {
   loopIterationsTotal,
@@ -174,16 +173,6 @@ async function refreshDepositStrategies(
             voltrClient,
             s.address,
             toAddress(manager.publicKey),
-            new BN(0),
-            transactionIxs,
-            addressLookupTableAddresses
-          );
-          break;
-        case "driftEarn":
-          await createDepositDEarnStrategyIx(
-            voltrClient,
-            (s as DriftEarnStrategyConfig).marketIndex,
-            manager,
             new BN(0),
             transactionIxs,
             addressLookupTableAddresses

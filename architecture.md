@@ -1,6 +1,6 @@
 # Hubra Vaults Rebalancer — Architecture
 
-A yield-optimized vault manager that dynamically allocates capital to the highest-yielding lending strategy on Solana, across Kamino, Drift, and Jupiter protocols.
+A yield-optimized vault manager that dynamically allocates capital to the highest-yielding lending strategy on Solana, across Kamino and Jupiter protocols.
 
 ## How It Works (TL;DR)
 
@@ -131,7 +131,7 @@ All USDC markets (100+)
     │  matchMarketsToStrategies()
     │  ├─ Kamino Vault: additionalData.vaultAddress === strategy.address
     │  └─ Jupiter Lend: provider.id === "jupiter"
-    │  (Drift/KaminoMarket: no API match → get 0% allocation)
+    │  (KaminoMarket: no API match → get 0% allocation)
     │
     ▼
 Matched markets (~8-10)
@@ -165,13 +165,12 @@ dilution = 5.5% - 3.67% = 1.83% → REJECT (> 0.5% threshold)
 
 ## Strategy Types
 
-Loaded from `strategies.json` at boot. Addresses for Drift and Jupiter are auto-derived from PDAs.
+Loaded from `strategies.json` at boot. Addresses for Jupiter are auto-derived from PDAs.
 
 | Type | Protocol | Address Source | Matchable via Dial API |
 |------|----------|--------------|----------------------|
 | `kaminoVault` | Kamino Vaults | Explicit in config | Yes (by vault address) |
 | `jupiterLend` | Jupiter Lend | PDA from asset mint | Yes (by provider id) |
-| `driftEarn` | Drift Earn | PDA from market index | No |
 | `kaminoMarket` | Kamino Markets | Explicit in config | No |
 
 Strategies not matchable in the API never win — their funds get withdrawn to the winner.
@@ -256,7 +255,6 @@ src/
     ├── constants.ts            # Program IDs
     ├── keypair.ts              # Manager keypair loading
     ├── utils.ts                # Logger, sleep, retry wrapper
-    ├── drift.ts                # Drift Earn deposit/withdraw instructions
     ├── jupiter.ts              # Jupiter Lend + swap instructions
     ├── simulate/
     │   ├── index.ts            # getCurrentAndTargetAllocation()
