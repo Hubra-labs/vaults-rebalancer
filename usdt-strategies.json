@@ -1,6 +1,5 @@
 {
   "strategies": [
-    { "id": "driftMain", "type": "driftEarn", "marketIndex": 5 },
     { "id": "jupiterLend", "type": "jupiterLend" },
     {
       "id": "allez-usdt",

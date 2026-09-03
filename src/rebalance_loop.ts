@@ -27,10 +27,6 @@ import {
   getCurrentAndTargetAllocation,
 } from "./lib/simulate";
 import {
-  createDepositDEarnStrategyIx,
-  createWithdrawDEarnStrategyIx,
-} from "./lib/drift";
-import {
   getAddressLookupTableAccounts,
   sendAndConfirmOptimisedTx,
 } from "./lib/solana";
@@ -40,7 +36,6 @@ import {
 } from "./lib/jupiter";
 import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
-import { strategyRegistry, DriftEarnStrategyConfig } from "./lib/strategy-config";
 import { getManagerKeypair } from "./lib/keypair";
 import { workerMetrics } from "./lib/metrics-bridge";
 
@@ -428,18 +423,6 @@ async function executeRebalance(
           depositLutAddresses
         );
         break;
-      case "driftEarn": {
-        const driftConfig = strategyRegistry.byId.get(allocation.strategyId)! as DriftEarnStrategyConfig;
-        await createDepositDEarnStrategyIx(
-          voltrClient,
-          driftConfig.marketIndex,
-          manager,
-          depositAmount,
-          depositIxs,
-          depositLutAddresses
-        );
-        break;
-      }
       case "jupiterLend":
         await createDepositJLendStrategyIx(
           voltrClient,
@@ -462,8 +445,9 @@ async function executeRebalance(
         );
         break;
       default:
-        logger.warn(`Unknown strategy type "${allocation.strategyType}" for "${allocation.strategyId}", skipping deposit`);
-        break;
+        throw new Error(
+          `Unsupported strategy type "${allocation.strategyType}" for "${allocation.strategyId}"`
+        );
     }
   }
 
@@ -507,18 +491,6 @@ async function executeRebalance(
           addressLookupTableAddresses
         );
         break;
-      case "driftEarn": {
-        const driftConfig = strategyRegistry.byId.get(allocation.strategyId)! as DriftEarnStrategyConfig;
-        await createWithdrawDEarnStrategyIx(
-          voltrClient,
-          driftConfig.marketIndex,
-          manager,
-          withdrawAmount,
-          transactionIxs,
-          addressLookupTableAddresses
-        );
-        break;
-      }
       case "jupiterLend":
         await createWithdrawJLendStrategyIx(
           voltrClient,
@@ -541,8 +513,9 @@ async function executeRebalance(
         );
         break;
       default:
-        logger.warn(`Unknown strategy type "${allocation.strategyType}" for "${allocation.strategyId}", skipping withdraw`);
-        break;
+        throw new Error(
+          `Unsupported strategy type "${allocation.strategyType}" for "${allocation.strategyId}"`
+        );
     }
   }
 
