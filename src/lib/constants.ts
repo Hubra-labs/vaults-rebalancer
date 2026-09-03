@@ -3,7 +3,6 @@ import { address } from "@solana/kit";
 // Program IDs (consistent across all vaults)
 export const KAMINO_ADAPTOR_PROGRAM_ID = address("to6Eti9CsC5FGkAtqiPphvKD2hiQiLsS8zWiDBqBPKR");
 export const TRUSTFUL_ADAPTOR_PROGRAM_ID = address("3pnpK9nrs1R65eMV1wqCXkDkhSgN18xb1G5pgYPwoZjJ");
-export const DRIFT_ADAPTOR_PROGRAM_ID = address("EBN93eXs5fHGBABuajQqdsKRkCgaqtJa8vEFD6vKXiP");
 export const JUPITER_ADAPTOR_PROGRAM_ID = address("EW35URAx3LiM13fFK3QxAXfGemHso9HWPixrv7YDY4AM");
 export const KAMINO_FARM_PROGRAM_ID = address("FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr");
 export const KAMINO_FARM_GLOBAL_CONFIG = address("6UodrBjL2ZreDy7QdR4YV1oxqMBjVYSEyrFpctqqwGwL");
@@ -16,8 +15,6 @@ export const WITHDRAW_VAULT_DISCRIMINATOR = Buffer.from([135, 7, 237, 120, 149, 
 export const DEPOSIT_KMARKET_DISCRIMINATOR = Buffer.from([212, 53, 186, 193, 147, 53, 143, 123]);
 export const WITHDRAW_KMARKET_DISCRIMINATOR = Buffer.from([123, 109, 245, 15, 150, 48, 203, 113]);
 export const CLAIM_REWARD_KMARKET_DISCRIMINATOR = Buffer.from([63, 114, 108, 43, 215, 9, 27, 228]);
-export const DEPOSIT_EARN_DISCRIMINATOR = Buffer.from([22, 219, 117, 134, 59, 142, 142, 178,]);
-export const WITHDRAW_EARN_DISCRIMINATOR = Buffer.from([70, 218, 208, 97, 147, 24, 19, 169,]);
 export const CLAIM_REWARD_DISCRIMINATOR = Buffer.from([0, 152, 75, 29, 195, 223, 12, 101,]);
 export const DEPOSIT_JLEND_DISCRIMINATOR = Buffer.from([56, 2, 200, 235, 238, 139, 231, 190,]);
 export const WITHDRAW_JLEND_DISCRIMINATOR = Buffer.from([232, 204, 244, 40, 201, 192, 7, 194,]);

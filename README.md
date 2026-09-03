@@ -27,12 +27,11 @@ Strategies with locked amounts exceeding the equal share keep their locked amoun
 
 | Type | Description |
 |------|-------------|
-| `driftEarn` | Drift spot market lending |
 | `jupiterLend` | Jupiter Lend |
 | `kaminoMarket` | Kamino lending market reserve |
 | `kaminoVault` | Kamino vault (multi-reserve) |
 
-Configure strategies in `strategies.json`. Drift and Jupiter Lend strategy addresses are derived automatically from on-chain PDAs — you only need to specify `marketIndex` for Drift and the vault's `ASSET_MINT_ADDRESS` handles Jupiter Lend.
+Configure strategies in `strategies.json` (and optionally `<asset>-strategies.json` when `ASSET_SYMBOL` is set). Jupiter Lend strategy addresses are derived automatically from on-chain PDAs — the vault's `ASSET_MINT_ADDRESS` handles Jupiter Lend derivation.
 
 ## Setup
 
@@ -58,7 +57,7 @@ pnpm run dev
 1. Fork this repo on Replit
 2. Open the **Secrets** tab and add each variable from `.env.example`
 3. For the manager keypair, set `MANAGER_SECRET_KEY` to your base58 private key or JSON byte array (e.g. `[174,47,154,...]`) — do **not** use `MANAGER_SECRET_PATH` on Replit
-4. Edit `strategies.json` with your strategies (Kamino strategies need an `address`; Drift needs a `marketIndex`; Jupiter Lend is derived automatically)
+4. Edit `strategies.json` with your strategies (Kamino strategies need an `address`; Jupiter Lend is derived automatically from `ASSET_MINT_ADDRESS`)
 5. Hit **Run** — the `.replit` file handles build + start automatically
 
 > Replit free tier will sleep your repl after inactivity. For a 24/7 bot, use a paid Replit plan or deploy to a VPS.
@@ -129,9 +128,8 @@ src/
     utils.ts                  # Logger, sleep, retry helpers
     solana.ts                 # Transaction building and sending
     price.ts                  # Token price fetching
-    drift.ts                  # Drift strategy instructions
     jupiter.ts                # Jupiter Lend strategy instructions + swap
-    strategy-config.ts        # Strategy registry loaded from strategies.json (derives Drift/Jupiter addresses from PDAs)
+    strategy-config.ts        # Strategy registry loaded from strategies.json (derives Jupiter addresses from PDAs)
     kamino/
       index.ts
       instructions.ts         # Kamino deposit/withdraw/claim instructions

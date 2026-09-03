@@ -72,7 +72,7 @@ export function selectWinner(markets: YieldMarket[]): MatchedMarket | null {
  * Used as fallback options when the winner strategy fails.
  */
 export function getFallbackStrategies(): StrategyConfig[] {
-  return strategyRegistry.strategies.filter(s => s.type !== "idle");
+  return strategyRegistry.strategies;
 }
 
 /**
