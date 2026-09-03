@@ -2,7 +2,8 @@
 # get-yield-opps — fetch yield opportunities from Dialect API
 # usage: ./get-yield-opps [SYMBOL]
 
-API_KEY="pk_t15egbvzqynrh10i8z35nx0n"
+# Dialect client key — same credential the rebalancer uses; never hardcode it here.
+API_KEY="${YIELD_MARKETS_API:?set YIELD_MARKETS_API (see .env)}"
 API_URL="https://markets.dial.to/api/v0/markets?type=yield&provider=kamino,jupiter"
 
 SYMBOL="${1:-}"

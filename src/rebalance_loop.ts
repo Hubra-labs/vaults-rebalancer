@@ -410,9 +410,18 @@ async function executeRebalance(
   // Build deposit instructions
   for (const allocation of depositDelta.filter((d) => d.delta.gtn(0))) {
     const depositAmount = allocation.delta.subn(nWithdraws);
-    
+
     if (depositAmount.lten(0)) {
       logger.warn(`Deposit amount for ${allocation.strategyId} is <= 0, skipping`);
+      continue;
+    }
+
+    // Strategies enforce their own deposit minimums (e.g. Kamino kvault rejects
+    // deposits < 100000 units), so dust deposits would fail simulation every cycle
+    if (depositAmount.lt(new BN(config.depositStrategyMinAmount))) {
+      logger.info(
+        `Deposit amount ${depositAmount.toString()} for ${allocation.strategyId} is below DEPOSIT_STRATEGY_MIN_AMOUNT (${config.depositStrategyMinAmount}), leaving idle`
+      );
       continue;
     }
 

@@ -5,21 +5,9 @@ global:
 scrape_configs:
   - job_name: "rebalancer"
     static_configs:
-      - targets: ["127.0.0.1:8080"]
-        labels:
-          asset: "usd1"
       - targets: ["127.0.0.1:8081"]
         labels:
           asset: "usdc"
-      - targets: ["127.0.0.1:8082"]
-        labels:
-          asset: "usdg"
-      - targets: ["127.0.0.1:8083"]
-        labels:
-          asset: "usds"
-      - targets: ["127.0.0.1:8084"]
-        labels:
-          asset: "usdt"
 
   - job_name: "voltr-exporter"
     static_configs:
