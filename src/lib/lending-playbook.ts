@@ -1,11 +1,11 @@
 import { config } from "../config";
 import { logger } from "./utils";
-import { workerMetrics } from "./metrics-bridge";
 import { StrategyConfig, strategyRegistry } from "./strategy-config";
 import { toBase58 } from "./convert";
+import { fetchStrategyApys } from "./apy-source";
 
-// Cache configuration
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+// APYs are refreshed hourly and served from cache.
+const CACHE_TTL_MS = 60 * 60 * 1000;
 
 interface CacheEntry<T> {
   data: T;
@@ -16,7 +16,7 @@ interface CacheEntry<T> {
 let opportunitiesCache: CacheEntry<LendingOpportunity[]> | null = null;
 
 /**
- * Lending opportunity from Dialect's yield markets API
+ * Lending opportunity for a configured strategy (see apy-source.ts)
  */
 export interface LendingOpportunity {
   id: string;
@@ -74,209 +74,43 @@ export interface MatchedOpportunity {
   strategy: StrategyConfig;
 }
 
-// Whitelisted providers for lending
-const WHITELISTED_PROVIDERS = [
-  { name: "kamino", img: "https://raw.githubusercontent.com/block-sync-one/hub-platforms/main/img/kamino.webp" },
-  { name: "jupiter", img: "https://imagedelivery.net/C7jfNnfrjpAYWW6YevrFDg/5c23c065-89ef-413b-8deb-6d8c6a849300/public" },
-];
-
-// Whitelisted strategy types
-const WHITELISTED_STRATEGIES = ["lending", "yield"];
-
-// Stablecoin patterns for asset grouping
-const STABLECOIN_PATTERNS = [
-  "usd1", "CASH", "USX", "USDG", "EURC", "USDe", "USDH", "UXD",
-  "USDT", "USDC", "USDS", "DAI", "BUSD", "TUSD", "FRAX", "LUSD",
-  "SUSD", "GUSD", "HUSD", "USDP", "USDN", "USTC", "FDUSD", "PYUSD",
-];
-
-// LST tokens for asset grouping
-const LST_PATTERNS = [
-  "lanternSOL", "bSOL", "bbSOL", "raSOL", "mSOL", "JitoSOL", "PSOL",
-  "mpSOL", "goSOL", "chSOL", "MonkeSOL", "sphSOL", "RoXSOL", "bpSOL",
-  "memeSOL", "iASOL", "chimpSOL", "sfSOL", "STEAKSOL", "masSOL",
-  "adraSOL", "honestSOL", "sctmSOL", "chaosSOL", "dfdvSOL", "JupSOL",
-  "banxSOL", "iceSOL", "uptSOL", "definSOL", "pathSOL", "espresSOL",
-  "hyloSOL", "superSOL", "proSOL", "bonkSOL", "dSOL", "compassSOL",
-  "picoSOL", "clockSOL", "hubSOL", "strongSOL", "stakeSOL", "pumpkinSOL",
-  "thugSOL", "wenSOL", "dainSOL", "digitSOL", "dlgtSOL", "dualSOL",
-  "haSOL", "hausSOL", "kumaSOL", "nordSOL", "polarSOL", "xSOL",
-  "fuseSOL", "apySOL", "lotusSOL", "eonSOL", "gS", "rugSOL", "soulSOL",
-  "prgnSOL", "RAD", "LUNA", "lpSOL", "lakeSOL", "badSOL", "lumiSOL",
-  "truthSOL", "pawSOL", "cgntSOL", "laineSOL", "vSOL", "dzSOL", "daoSOL",
-  "JSOL", "zippySOL", "elSOL", "aeroSOL", "BNSOL", "xandSOL", "raiSOL",
-  "mvtSOL", "enderSOL", "charitySOL", "dynoSOL",
-];
-
 /**
- * Determine the asset group for a token symbol
+ * Fetch fresh APYs for our whitelisted strategies and update the cache.
+ * On failure the previous snapshot is kept.
  */
-function findAssetGroup(symbol: string): string {
-  const lowerSymbol = symbol.toLowerCase();
-  
-  if (symbol === "SOL") return "SOL";
-  if (STABLECOIN_PATTERNS.some(pattern => lowerSymbol.includes(pattern.toLowerCase()))) return "stable";
-  if (LST_PATTERNS.some(lst => lowerSymbol.includes(lst.toLowerCase()))) return "LSTs";
-  if (lowerSymbol.includes("btc")) return "BTC";
-  
-  return "other";
+export async function refreshLendingOpportunities(): Promise<LendingOpportunity[]> {
+  const sorted = (await fetchStrategyApys()).sort((a, b) => b.depositApy - a.depositApy);
+  opportunitiesCache = { data: sorted, timestamp: Date.now() };
+  return sorted;
 }
 
 /**
- * Filter duplicates by keeping the highest APY for each token
- */
-function filterDuplicatesByHighestApy(opportunities: LendingOpportunity[]): LendingOpportunity[] {
-  const assetMap = new Map<string, LendingOpportunity>();
-
-  opportunities.forEach((opportunity) => {
-    const assetKey =
-      opportunity.token?.address ||
-      opportunity.tokenA?.address ||
-      opportunity.token?.symbol ||
-      opportunity.tokenA?.symbol ||
-      opportunity.id;
-
-    if (!assetKey) return;
-
-    const currentApy = opportunity.depositApy || 0;
-    const existingOpportunity = assetMap.get(assetKey);
-
-    if (!existingOpportunity || currentApy > (existingOpportunity.depositApy || 0)) {
-      assetMap.set(assetKey, opportunity);
-    }
-  });
-
-  return Array.from(assetMap.values());
-}
-
-/**
- * Fetch lending opportunities from Dialect's yield markets API
- */
-async function fetchFromDialect(): Promise<LendingOpportunity[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), config.yieldApiTimeoutMs);
-
-  const fetchStart = Date.now();
-  try {
-    const response = await fetch(
-      config.yieldMarketsUrl,
-      {
-        signal: controller.signal,
-        headers: {
-          "x-dialect-client-key": config.yieldMarketsApi,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Dialect API returned ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    if (!data.markets || !Array.isArray(data.markets)) {
-      throw new Error("Invalid API response: expected markets array");
-    }
-
-    // Filter and transform opportunities
-    const filtered = data.markets
-      .filter((item: any) =>
-        WHITELISTED_PROVIDERS.some(p => item.id.indexOf(p.name) > -1) &&
-        WHITELISTED_STRATEGIES.includes(item.type) &&
-        item.actions?.deposit &&
-        item.totalDepositUsd &&
-        item.totalDepositUsd > config.minTvlUsd &&
-        item.depositApy &&
-        item.depositApy > 0.001
-      )
-      .map((item: any): LendingOpportunity => ({
-        ...item,
-        depositApy: item.depositApy || 0,
-        baseDepositApy: item.baseDepositApy || 0,
-        rewards: item.rewards
-          ?.filter((reward: any) => reward.marketAction === "deposit")
-          .map((reward: any) => ({
-            ...reward,
-            apy: reward.apy || 0,
-          })) || [],
-        assetGroup: findAssetGroup(
-          item?.token?.symbol || item?.tokenA?.symbol || item?.tokenB?.symbol || ""
-        ),
-      }));
-
-    // Deduplicate by highest APY
-    const deduplicated = filterDuplicatesByHighestApy(filtered);
-    
-    // Sort by APY descending
-    const sorted = deduplicated.sort((a, b) => b.depositApy - a.depositApy);
-
-    workerMetrics.inc("yield_api_calls_total", { status: "success" });
-    workerMetrics.observe("yield_api_duration_seconds", (Date.now() - fetchStart) / 1000);
-
-    logger.info(
-      { total: data.markets.length, filtered: sorted.length },
-      "Fetched lending opportunities from Dialect API"
-    );
-
-    return sorted;
-  } catch (error) {
-    const status = controller.signal.aborted ? "timeout" : "error";
-    workerMetrics.inc("yield_api_calls_total", { status });
-    workerMetrics.observe("yield_api_duration_seconds", (Date.now() - fetchStart) / 1000);
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-/**
- * Get lending opportunities with caching (10 min TTL)
+ * Get lending opportunities from the hourly cache (fetches if empty/expired;
+ * falls back to the last snapshot if that fetch fails).
  */
 export async function getLendingOpportunities(): Promise<LendingOpportunity[]> {
-  const now = Date.now();
-
-  // Check if cache is valid
-  if (opportunitiesCache && (now - opportunitiesCache.timestamp) < CACHE_TTL_MS) {
-    logger.debug(
-      { cacheAge: Math.round((now - opportunitiesCache.timestamp) / 1000) },
-      "Using cached lending opportunities"
-    );
+  if (opportunitiesCache && Date.now() - opportunitiesCache.timestamp < CACHE_TTL_MS) {
     return opportunitiesCache.data;
   }
-
-  // Fetch fresh data from Dialect
-  logger.info("Fetching fresh lending opportunities from Dialect API");
-  
-  let opportunities: LendingOpportunity[] = [];
-  
   try {
-    opportunities = await fetchFromDialect();
+    return await refreshLendingOpportunities();
   } catch (error) {
-    logger.error({ error }, "Failed to fetch opportunities from Dialect API");
-    workerMetrics.inc("yield_api_calls_total", { provider: "dialect", status: "error" });
+    if (!opportunitiesCache) throw error;
+    logger.warn({ err: String(error) }, "APY refresh failed — using last snapshot");
+    return opportunitiesCache.data;
   }
+}
 
-  // Deduplicate by highest APY
-  const deduplicated = filterDuplicatesByHighestApy(opportunities);
-  
-  // Sort by APY descending
-  const sorted = deduplicated.sort((a, b) => b.depositApy - a.depositApy);
-
-  // Update cache
-  opportunitiesCache = {
-    data: sorted,
-    timestamp: now,
-  };
-
-  logger.info(
-    { 
-      total: sorted.length,
-      topAPY: sorted[0]?.depositApy || 0
-    },
-    "Fetched lending opportunities"
-  );
-
-  return sorted;
+/**
+ * Refresh APYs every hour in the background.
+ */
+export function startApyRefreshLoop(): void {
+  const run = () =>
+    refreshLendingOpportunities().catch((error) =>
+      logger.error({ err: String(error) }, "Scheduled APY refresh failed")
+    );
+  run();
+  setInterval(run, CACHE_TTL_MS).unref();
 }
 
 /**
@@ -309,74 +143,11 @@ export async function getOpportunitiesForAsset(assetMint: string): Promise<Lendi
 }
 
 /**
- * Match an opportunity to a configured strategy
+ * Match an opportunity to its configured strategy (apy-source ids are strategy ids)
  */
 export function matchOpportunityToStrategy(opportunity: LendingOpportunity): MatchedOpportunity | null {
-  // Match Kamino vaults by vault address
-  if (opportunity.additionalData?.vaultAddress) {
-    const strategy = strategyRegistry.strategies.find(
-      s => s.type === "kaminoVault" && s.address === opportunity.additionalData?.vaultAddress
-    );
-    if (strategy) {
-      return { market: opportunity, opportunity, strategy };
-    }
-  }
-
-  // Match Jupiter Lend by provider
-  if (opportunity.provider.id === "jupiter") {
-    const strategy = strategyRegistry.strategies.find(s => s.type === "jupiterLend");
-    if (strategy) {
-      return { market: opportunity, opportunity, strategy };
-    }
-  }
-
-  // Match Kamino markets
-  if (opportunity.provider.id === "kamino" && !opportunity.additionalData?.vaultAddress) {
-    const strategy = strategyRegistry.strategies.find(s => s.type === "kaminoMarket");
-    if (strategy) {
-      return { market: opportunity, opportunity, strategy };
-    }
-  }
-
-  return null;
-}
-
-/**
- * Select the best opportunity for an asset that matches a configured strategy
- */
-export async function selectBestOpportunity(assetMint: string): Promise<MatchedOpportunity | null> {
-  const opportunities = await getOpportunitiesForAsset(assetMint);
-
-  if (opportunities.length === 0) {
-    logger.warn({ assetMint }, "No lending opportunities found for asset");
-    return null;
-  }
-
-  // Opportunities are already sorted by APY descending
-  // Find the first one that matches a configured strategy
-  for (const opp of opportunities) {
-    const matched = matchOpportunityToStrategy(opp);
-    if (matched) {
-      logger.info(
-        {
-          strategyId: matched.strategy.id,
-          opportunityId: matched.opportunity.id,
-          apy: matched.opportunity.depositApy,
-          tvl: matched.opportunity.totalDepositUsd,
-          provider: matched.opportunity.provider.name,
-          token: matched.opportunity.token?.symbol,
-        },
-        "Selected best lending opportunity"
-      );
-      return matched;
-    }
-  }
-
-  logger.warn(
-    { assetMint, opportunityCount: opportunities.length },
-    "No matching strategy found for any opportunity"
-  );
-  return null;
+  const strategy = strategyRegistry.byId.get(opportunity.id);
+  return strategy ? { market: opportunity, opportunity, strategy } : null;
 }
 
 /**

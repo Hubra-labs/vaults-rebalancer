@@ -17,6 +17,7 @@ import {
 } from "./lib/solana";
 import { BN } from "@coral-xyz/anchor";
 import { createDepositJLendStrategyIx } from "./lib/jupiter";
+import { createDepositPerenaStrategyIx } from "./lib/perena";
 import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
 import { strategyRegistry } from "./lib/strategy-config";
@@ -144,6 +145,8 @@ async function refreshDepositStrategies(
           positionValue: receipt.positionValue as BN,
           lastUpdatedTs: receipt.lastUpdatedTs as BN,
         }))
+        // Configured but not initialized on-chain yet (e.g. awaiting adaptor setup)
+        .catch(() => null)
     )
   );
 
@@ -154,7 +157,7 @@ async function refreshDepositStrategies(
     const s = strategyRegistry.strategies[i];
     const receipt = receipts[i];
 
-    if (receipt.positionValue.gt(cutOffPositionValue) && receipt.lastUpdatedTs.lt(cutoffTime)) {
+    if (receipt && receipt.positionValue.gt(cutOffPositionValue) && receipt.lastUpdatedTs.lt(cutoffTime)) {
       switch (s.type) {
         case "kaminoVault":
           await createDepositKVaultStrategyIx(
@@ -186,6 +189,14 @@ async function refreshDepositStrategies(
             new BN(0),
             transactionIxs,
             addressLookupTableAddresses
+          );
+          break;
+        case "perena":
+          await createDepositPerenaStrategyIx(
+            voltrClient,
+            toAddress(manager.publicKey),
+            new BN(0),
+            transactionIxs
           );
           break;
         default:

@@ -16,12 +16,14 @@ import {
 } from "./optimizer";
 import {
   strategyRegistry,
+  StrategyConfig,
   IDLE_ID,
 } from "../strategy-config";
 import {
   fetchYieldMarkets,
-  selectWinner,
+  chooseTarget,
 } from "../yield-api";
+import { PERENA_VAULT_ASSET_ATA } from "../perena";
 import { logger } from "../utils";
 import { workerMetrics } from "../metrics-bridge";
 
@@ -138,6 +140,12 @@ export async function getCurrentAndTargetAllocation(
     kvaultLiquidityMap.set(id, liq);
   }
 
+  // Perena withdrawals are paid from its vault's USDC balance
+  for (const s of strategyRegistry.strategies.filter((s) => s.type === "perena")) {
+    const bal = await connection.getTokenAccountBalance(PERENA_VAULT_ASSET_ATA);
+    kvaultLiquidityMap.set(s.id, new BN(bal.value.amount).muln(98).divn(100));
+  }
+
   const strategyInputs: StrategyInput[] = strategyRegistry.strategies.map(
     (s, i) => ({
       strategyId: s.id,
@@ -149,7 +157,15 @@ export async function getCurrentAndTargetAllocation(
     })
   );
 
-  const winnerResult = await resolveYieldWinner(totalPositionValue);
+  // Current pool = configured strategy holding the most funds
+  const current = prevAllocations
+    .filter((a) => a.strategyType !== "idle" && a.positionValue.gtn(0))
+    .sort((a, b) => b.positionValue.cmp(a.positionValue))[0];
+
+  const winnerResult = await resolveYieldWinner(
+    current?.strategyId ?? null,
+    (s) => receiptMap.has(String(s.address))
+  );
 
   // If we should skip rebalance (no matching strategy or API failure),
   // return current allocations as target (no changes)
@@ -195,21 +211,21 @@ export interface YieldWinnerResult {
 }
 
 async function resolveYieldWinner(
-  totalPositionValue: BN
+  currentId: string | null,
+  isInitialized: (s: StrategyConfig) => boolean
 ): Promise<YieldWinnerResult> {
   try {
     const assetMint = config.assetMintAddress as string;
     const markets = await fetchYieldMarkets(assetMint);
 
-    // Playbook API returns the best opportunity per asset (pre-selected)
-    // selectWinner matches it to a configured strategy
-    const winner = selectWinner(markets);
-    if (!winner) {
-      logger.warn("No matching strategy for best yield opportunity — keeping current allocation (not falling back to equal-weight)");
+    const decision = chooseTarget(markets, currentId, isInitialized);
+    if (!decision) {
+      logger.warn("No eligible strategy for best yield opportunity — keeping current allocation (not falling back to equal-weight)");
       workerMetrics.inc("rebalance_skip_total", { reason: "no_match" });
       return { winnerId: null, skipRebalance: true, reason: "no_matching_strategy" };
     }
 
+    const { winner } = decision;
     workerMetrics.set("yield_winner_apy", winner.market.depositApy);
     workerMetrics.set("yield_winner_tvl", winner.market.totalDepositUsd);
     workerMetrics.set("yield_winner_info", 1, {
@@ -219,17 +235,20 @@ async function resolveYieldWinner(
       vault_address: config.voltrVaultAddress.toString(),
     });
 
+    const pct = (x: number | null) => (x === null ? "unknown" : `${(x * 100).toFixed(2)}%`);
     logger.info(
       {
         winnerId: winner.strategy.id,
-        apy: `${(winner.market.depositApy * 100).toFixed(2)}%`,
-        tvl: `$${Math.round(winner.market.totalDepositUsd).toLocaleString()}`,
-        provider: winner.market.provider.name,
+        winnerApy: pct(winner.market.depositApy),
+        currentId: decision.currentId,
+        currentApy: pct(decision.currentApy),
+        targetId: decision.targetId,
+        reason: decision.reason,
       },
-      "Yield winner selected — allocating 100%"
+      decision.switched ? "Yield target selected — allocating 100%" : "Holding current pool — allocating 100%"
     );
 
-    return { winnerId: winner.strategy.id, skipRebalance: false };
+    return { winnerId: decision.targetId, skipRebalance: false };
   } catch (error) {
     workerMetrics.inc("rebalance_skip_total", { reason: "api_fail" });
     logger.error(error, "Yield API failed — keeping current allocation (not falling back to equal-weight)");

@@ -87,6 +87,11 @@ export async function setupJupiterSwap(
         `${maxAccounts}`
       )
     ).json();
+    if (jupQuoteResponse.error || !jupQuoteResponse.inputMint) {
+      throw new Error(
+        `Jupiter quote failed for ${inputMintAddress} -> ${outputMintAddress}: ${jupQuoteResponse.errorCode ?? ""} ${jupQuoteResponse.error ?? JSON.stringify(jupQuoteResponse)}`
+      );
+    }
 
     // Get Jupiter swap instructions
     const instructions = await (

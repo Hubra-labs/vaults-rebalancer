@@ -6,7 +6,7 @@ import { JUPITER_LEND_PROGRAM_ID } from "./constants";
 import { config } from "../config";
 import { toPublicKey } from "./convert";
 
-export type StrategyType = "kaminoVault" | "kaminoMarket" | "jupiterLend";
+export type StrategyType = "kaminoVault" | "kaminoMarket" | "jupiterLend" | "perena";
 
 interface BaseStrategyConfig {
   id: string;
@@ -26,10 +26,16 @@ export interface JupiterLendStrategyConfig extends BaseStrategyConfig {
   type: "jupiterLend";
 }
 
+// Perena USD* via our hubra-usdc-adaptor; address = Perena vault account
+export interface PerenaStrategyConfig extends BaseStrategyConfig {
+  type: "perena";
+}
+
 export type KnownStrategyConfig =
   | KaminoVaultStrategyConfig
   | KaminoMarketStrategyConfig
-  | JupiterLendStrategyConfig;
+  | JupiterLendStrategyConfig
+  | PerenaStrategyConfig;
 
 export type StrategyConfig = KnownStrategyConfig | BaseStrategyConfig;
 
@@ -76,6 +82,8 @@ function loadStrategyRegistry(): StrategyRegistry {
         return { id: s.id, type: "kaminoVault", address: address(s.address) } as KaminoVaultStrategyConfig;
       case "kaminoMarket":
         return { id: s.id, type: "kaminoMarket", address: address(s.address) } as KaminoMarketStrategyConfig;
+      case "perena":
+        return { id: s.id, type: "perena", address: address(s.address) } as PerenaStrategyConfig;
       default:
         return { id: s.id, type: s.type, address: address(s.address) } as BaseStrategyConfig;
     }

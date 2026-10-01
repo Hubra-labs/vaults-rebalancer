@@ -34,6 +34,12 @@ import {
   createDepositJLendStrategyIx,
   createWithdrawJLendStrategyIx,
 } from "./lib/jupiter";
+import {
+  createDepositPerenaStrategyIx,
+  createWithdrawPerenaStrategyIx,
+  getPerenaPositionValue,
+  PERENA_FULL_EXIT_HAIRCUT_BPS,
+} from "./lib/perena";
 import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
 import { strategyRegistry } from "./lib/strategy-config";
@@ -402,10 +408,25 @@ async function executeRebalance(
   for (const allocation of depositDelta.filter((d) => d.delta.ltn(0))) {
     nWithdraws++;
   }
+
+  // A full Perena exit can only request NAV minus a haircut (redemption fee),
+  // so the vault gets back less than the position value. Shrink the deposit
+  // by that gap so it fits the idle balance.
+  let perenaExitAmount: BN | null = null;
+  let depositShortfall = new BN(0);
+  const perenaFullExit = depositDelta.find(
+    (d, i) => d.strategyType === "perena" && d.delta.ltn(0) && newAllocations[i].positionValue.isZero()
+  );
+  if (perenaFullExit) {
+    const nav = await getPerenaPositionValue(voltrClient, connection);
+    perenaExitAmount = nav.muln(10_000 - PERENA_FULL_EXIT_HAIRCUT_BPS).divn(10_000);
+    depositShortfall = BN.max(perenaFullExit.delta.neg().sub(perenaExitAmount), new BN(0));
+  }
   
   // Build deposit instructions
   for (const allocation of depositDelta.filter((d) => d.delta.gtn(0))) {
-    const depositAmount = allocation.delta.subn(nWithdraws);
+    const depositAmount = allocation.delta.subn(nWithdraws).sub(depositShortfall);
+    depositShortfall = new BN(0);
 
     if (depositAmount.lten(0)) {
       logger.warn(`Deposit amount for ${allocation.strategyId} is <= 0, skipping`);
@@ -452,6 +473,14 @@ async function executeRebalance(
           depositAmount,
           depositIxs,
           depositLutAddresses
+        );
+        break;
+      case "perena":
+        await createDepositPerenaStrategyIx(
+          voltrClient,
+          toAddress(manager.publicKey),
+          depositAmount,
+          depositIxs
         );
         break;
       default:
@@ -519,6 +548,14 @@ async function executeRebalance(
           withdrawAmount,
           transactionIxs,
           addressLookupTableAddresses
+        );
+        break;
+      case "perena":
+        await createWithdrawPerenaStrategyIx(
+          voltrClient,
+          toAddress(manager.publicKey),
+          perenaExitAmount && allocation === perenaFullExit ? perenaExitAmount : withdrawAmount,
+          transactionIxs
         );
         break;
       default:

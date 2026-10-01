@@ -9,6 +9,7 @@
       { "id": "allez-usdc", "type": "kaminoVault", "address": "A1USdzqDHmw5oz97AkqAGLxEQZfFjASZFuy4T6Qdvnpo" },
       { "id": "gauntlet-usdc-prime", "type": "kaminoVault", "address": "9E69U4GzWhryRaPe8DYpco6Z9vTZY6gg8w6W2QsBACEj" },
       { "id": "mev-capital-usdc", "type": "kaminoVault", "address": "EPC2N3AAv84P9TKsnDt2x41p6T7c5vTewBhQbh4RVx4r" },
-      { "id": "usdc-prime", "type": "kaminoVault", "address": "HDsayqAsDWy3QvANGqh2yNraqcD8Fnjgh73Mhb3WRS5E" }
+      { "id": "usdc-prime", "type": "kaminoVault", "address": "HDsayqAsDWy3QvANGqh2yNraqcD8Fnjgh73Mhb3WRS5E" },
+      { "id": "kamino-institutional-commodity-yield-usdc", "type": "kaminoVault", "address": "B5pjfZAiKjyUEuqB2694NHrsjcaM67uuJaWqjzTVtzR6" }
       ]
   }

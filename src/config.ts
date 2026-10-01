@@ -21,8 +21,6 @@ const boolFlag = (defaultVal: string) =>
 
 const envSchema = z.object({
   // Core
-  YIELD_MARKETS_URL: z.string().min(1, "YIELD_MARKETS_URL is required"),
-  YIELD_MARKETS_API: z.string().min(1, "YIELD_MARKETS_API is required"),
   RPC_URL: z.string().min(1, "RPC_URL is required"),
   RPC_FALLBACK_URL: optionalString,
   MANAGER_SECRET_PATH: optionalString,
@@ -42,6 +40,8 @@ const envSchema = z.object({
   // Yield optimization
   MIN_TVL_USD: z.coerce.number().default(500_000),
   MAX_DILUTION_PCT: z.coerce.number().default(0.005),
+  // Only move off the current pool if the winner's APY is higher by at least this much (0.005 = 0.5%)
+  MIN_APY_ADVANTAGE: z.coerce.number().default(0.005),
   YIELD_API_TIMEOUT_MS: z.coerce.number().default(30_000),
 
   // Worker
@@ -89,8 +89,6 @@ function parseConfig() {
 const env = parseConfig();
 
 export const config = {
-  yieldMarketsUrl: env.YIELD_MARKETS_URL,
-  yieldMarketsApi: env.YIELD_MARKETS_API,
   rpcUrl: env.RPC_URL,
   rpcFallbackUrl: env.RPC_FALLBACK_URL,
   managerSecretPath: env.MANAGER_SECRET_PATH,
@@ -107,6 +105,7 @@ export const config = {
   rebalanceDeviationBps: env.REBALANCE_DEVIATION_BPS,
   minTvlUsd: env.MIN_TVL_USD,
   maxDilutionPct: env.MAX_DILUTION_PCT,
+  minApyAdvantage: env.MIN_APY_ADVANTAGE,
   yieldApiTimeoutMs: env.YIELD_API_TIMEOUT_MS,
   healthServerPort: env.HEALTH_SERVER_PORT,
   healthServerBindAddr: env.HEALTH_SERVER_BIND_ADDR,

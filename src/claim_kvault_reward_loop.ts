@@ -88,54 +88,65 @@ export async function runClaimKvaultRewardLoop() {
           const farmsForUserArray = Array.from(farmsForUser.entries());
 
           for (const [_, farmData] of farmsForUserArray) {
-            if (!farmData.pendingRewards?.length) continue;
-            const rewardAmount =
-              farmData.pendingRewards[0].cumulatedPendingRewards;
+            // Only the first reward slot: Voltr's Kamino adaptor always harvests
+            // reward index 0 (other slots fail RewardVaultMismatch).
+            for (const reward of (farmData.pendingRewards ?? []).slice(0, 1)) {
+              const rewardAmount = reward.cumulatedPendingRewards;
+              if (rewardAmount.lte(100)) continue;
 
-            if (rewardAmount.gt(100)) {
-              const addressLookupTableAddresses: string[] = [];
-              const transactionIxs: TransactionInstruction[] = [];
-              await createClaimRewardKVaultStrategyIx(
-                rpc,
-                connection,
-                voltrClient,
-                address(kvConfig.address),
-                farmData.userStateAddress,
-                farmData.farm,
-                farmData.pendingRewards[0].rewardTokenMint,
-                farmData.pendingRewards[0].rewardTokenProgramId,
-                toAddress(manager.publicKey),
-                new BN(rewardAmount.toString()),
-                vaultReservesAccountMetas,
-                vaultReservesLendingMarkets,
-                transactionIxs,
-                addressLookupTableAddresses
-              );
-
-              addressLookupTableAddresses.push(config.voltrLookupTableAddress);
-
-              const addressLookupTableAccounts =
-                await getAddressLookupTableAccounts(
-                  addressLookupTableAddresses,
-                  rpc
+              // One reward failing (e.g. no Jupiter route for its token) must
+              // not block claiming the others.
+              try {
+                const addressLookupTableAddresses: string[] = [];
+                const transactionIxs: TransactionInstruction[] = [];
+                await createClaimRewardKVaultStrategyIx(
+                  rpc,
+                  connection,
+                  voltrClient,
+                  address(kvConfig.address),
+                  farmData.userStateAddress,
+                  farmData.farm,
+                  reward.rewardTokenMint,
+                  reward.rewardTokenProgramId,
+                  toAddress(manager.publicKey),
+                  new BN(rewardAmount.floor().toString()),
+                  vaultReservesAccountMetas,
+                  vaultReservesLendingMarkets,
+                  transactionIxs,
+                  addressLookupTableAddresses
                 );
 
-              const txStart = Date.now();
-              const txSig = await sendAndConfirmOptimisedTx(
-                transactionIxs,
-                connManager.getRpcUrl(),
-                manager,
-                [],
-                addressLookupTableAccounts,
-                null,
-                "claim"
-              );
-              txTotal.inc({ type: "claim_kvault", status: "success" });
-              txDurationSeconds.observe({ type: "claim_kvault" }, (Date.now() - txStart) / 1000);
+                addressLookupTableAddresses.push(config.voltrLookupTableAddress);
 
-              logger.info(
-                `Claim kvault reward strategy (${kvConfig.id}) confirmed with signature: ${txSig}`
-              );
+                const addressLookupTableAccounts =
+                  await getAddressLookupTableAccounts(
+                    addressLookupTableAddresses,
+                    rpc
+                  );
+
+                const txStart = Date.now();
+                const txSig = await sendAndConfirmOptimisedTx(
+                  transactionIxs,
+                  connManager.getRpcUrl(),
+                  manager,
+                  [],
+                  addressLookupTableAccounts,
+                  null,
+                  "claim"
+                );
+                txTotal.inc({ type: "claim_kvault", status: "success" });
+                txDurationSeconds.observe({ type: "claim_kvault" }, (Date.now() - txStart) / 1000);
+
+                logger.info(
+                  `Claim kvault reward strategy (${kvConfig.id}, ${reward.rewardTokenMint}) confirmed with signature: ${txSig}`
+                );
+              } catch (error) {
+                txTotal.inc({ type: "claim_kvault", status: "error" });
+                logger.warn(
+                  { err: String(error), strategyId: kvConfig.id, rewardMint: reward.rewardTokenMint },
+                  "Skipping kvault reward claim"
+                );
+              }
             }
           }
         }
