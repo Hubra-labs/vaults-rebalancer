@@ -13,10 +13,11 @@ import { Address } from "@solana/kit";
 import { config } from "../config";
 import { toPublicKey } from "./convert";
 
-// Our Perena adaptor (perena-adaptor/): must be whitelisted by Voltr and added
-// to the vault (scripts/add-perena-adaptor.ts) before any of this can execute.
+// Our unified USDC adaptor (perena-adaptor/, hubra_usdc_adaptor). The vault must be
+// whitelisted by Voltr for custom adaptors and the adaptor added to it
+// (scripts/add-perena-adaptor.ts) before any of this can execute.
 export const PERENA_ADAPTOR_PROGRAM_ID = new PublicKey(
-  "FD7kwF7EVkvvySgQdNQAxqxvdfg1EvpgQdkbbWDVFeXK"
+  "raRnoKWoRcon9dqxvAhtiPyQHgikpcu1g9tXeb9jPGT"
 );
 
 // Perena bankineco program and the USD* vault account set (mainnet).
@@ -29,10 +30,11 @@ export const PERENA_FEE_VAULT = new PublicKey("EAf7PeuCxhMN9gEhE1Gagmj28krmu3wEq
 export const PERENA_FEE_VAULT_ATA = new PublicKey("CSYjpGjrZZVUDshaCcMZYNB7JNnVHFwNFgzbUeFScSXj");
 export const PERENA_VAULT_ASSET_ATA = new PublicKey("EgewZEt58TFvMBKKXpfoCT2Vg7JBUAtXXLdzcgmMvh5U");
 
-// Adaptor anchor discriminators (sha256("global:<name>")[0..8]).
-export const INITIALIZE_PERENA_DISCRIMINATOR = Buffer.from([175, 175, 109, 31, 13, 152, 155, 237]);
-export const DEPOSIT_PERENA_DISCRIMINATOR = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182]);
-export const WITHDRAW_PERENA_DISCRIMINATOR = Buffer.from([183, 18, 70, 156, 148, 109, 161, 34]);
+// Unified adaptor: each protocol has its own instructions, selected by
+// discriminator (sha256("global:<name>")[0..8]).
+export const INITIALIZE_PERENA_DISCRIMINATOR = Buffer.from([234, 30, 8, 156, 35, 91, 86, 190]); // initialize_perena
+export const DEPOSIT_PERENA_DISCRIMINATOR = Buffer.from([45, 79, 139, 1, 118, 200, 84, 181]); // deposit_perena
+export const WITHDRAW_PERENA_DISCRIMINATOR = Buffer.from([80, 151, 35, 65, 8, 186, 178, 89]); // withdraw_perena
 
 // bankineco get_nav (view) discriminator, used to read position value off-chain.
 const GET_NAV_DISCRIMINATOR = Buffer.from([200, 89, 76, 53, 215, 218, 63, 21]);
