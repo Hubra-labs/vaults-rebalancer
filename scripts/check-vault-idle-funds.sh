@@ -1,25 +1,26 @@
 #!/bin/bash
-# Check Hubra vaults for idle funds
-# Idle funds = totalValue - sum(allocations.positionValue)
+# Check Hubra vaults for idle funds and auto-trigger rebalance if needed
 # Values from API are in smallest units, divided by 10^decimals for display
 
 set -e
 
+# Vault address : Rebalancer port (ports assigned alphabetically by setup.sh)
 VAULTS=(
-  "HUBRA_USDC_VAULT:3maCuTJVPteZ2dFA8dADxz2EbpJHfoAG5txYhXDs6gNQ"
-  "HUBRA_USDT_VAULT:3kzb6rcDJxSdkWCwXXP9PULSqBy6rVDNWanzw5dBCYCj"
-  "HUBRA_USD1_VAULT:663azFYEnHDTLGf4CEk8KpNTje8XxZVLnQwo9LjbSejy"
-  "HUBRA_USDS_VAULT:5mv1cURMSaPU3q3wFVoN4mKMWNFVvUtH3UZrG4Z2Mgfz"
-  "HUBRA_USDG_VAULT:7VZ1XKK7Zns6UzRc1Wz54u6cypN7zaduasVXXr7NysxH"
+  "USD1:663azFYEnHDTLGf4CEk8KpNTje8XxZVLnQwo9LjbSejy:8080"
+  "USDC:3maCuTJVPteZ2dFA8dADxz2EbpJHfoAG5txYhXDs6gNQ:8081"
+  "USDG:7VZ1XKK7Zns6UzRc1Wz54u6cypN7zaduasVXXr7NysxH:8082"
+  "USDS:5mv1cURMSaPU3q3wFVoN4mKMWNFVvUtH3UZrG4Z2Mgfz:8083"
+  "USDT:3kzb6rcDJxSdkWCwXXP9PULSqBy6rVDNWanzw5dBCYCj:8084"
 )
 
-# Tolerance in dollars (ignore dust below this threshold)
-TOLERANCE=1.00
+# Tolerance in dollars (ignore idle below this threshold)
+TOLERANCE=10.00
 
 ISSUES=()
+REBALANCED=()
 
 for vault_entry in "${VAULTS[@]}"; do
-  IFS=':' read -r vault_name vault_address <<< "$vault_entry"
+  IFS=':' read -r vault_name vault_address rebalancer_port <<< "$vault_entry"
   
   # Fetch vault data
   response=$(curl -s "https://api.voltr.xyz/vault/${vault_address}")
@@ -44,7 +45,7 @@ for vault_entry in "${VAULTS[@]}"; do
       alloc_usd = alloc / divisor
       idle_usd = total_usd - alloc_usd
       
-      if (idle_usd > tol || idle_usd < -tol) {
+      if (idle_usd > tol) {
         printf "IDLE:%.2f:%.2f:%.2f", total_usd, alloc_usd, idle_usd
       } else {
         print "OK"
@@ -54,17 +55,35 @@ for vault_entry in "${VAULTS[@]}"; do
   
   if [[ "$result" == IDLE:* ]]; then
     IFS=':' read -r _ total_fmt alloc_fmt idle_fmt <<< "$result"
-    ISSUES+=("$vault_name: Idle funds detected! Total: \$${total_fmt}, Allocated: \$${alloc_fmt}, Idle: \$${idle_fmt}")
+    
+    # Trigger rebalance
+    rebalance_result=$(curl -s -X POST "http://localhost:${rebalancer_port}/rebalance" 2>&1)
+    
+    if echo "$rebalance_result" | grep -q "triggered"; then
+      REBALANCED+=("$vault_name: Idle \$${idle_fmt} → Rebalance triggered (port ${rebalancer_port})")
+    else
+      ISSUES+=("$vault_name: Idle \$${idle_fmt} — Rebalance FAILED: ${rebalance_result}")
+    fi
   fi
 done
 
+# Output results
+if [ ${#REBALANCED[@]} -gt 0 ]; then
+  echo "🔄 Auto-Rebalance Triggered"
+  printf '%s\n' "${REBALANCED[@]}"
+  echo ""
+fi
+
 if [ ${#ISSUES[@]} -gt 0 ]; then
-  echo "⚠️ Vault Idle Funds Alert"
+  echo "⚠️ Vault Issues"
   printf '%s\n' "${ISSUES[@]}"
   echo ""
+fi
+
+if [ ${#REBALANCED[@]} -gt 0 ] || [ ${#ISSUES[@]} -gt 0 ]; then
   echo "📊 Grafana: https://falcon.hubra.app/grafana/?orgId=1&from=now-5m&to=now&timezone=browser&var-asset=\$__all&refresh=30s"
   exit 1
 else
-  echo "All vaults OK - no idle funds detected"
+  echo "All vaults OK - no idle funds above \$${TOLERANCE}"
   exit 0
 fi
