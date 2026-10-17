@@ -2,6 +2,7 @@ import { Connection } from "@solana/web3.js";
 import { config } from "../config";
 import { logger } from "./utils";
 import { getPerenaApy, USDSTAR_MINT } from "./perena";
+import { getP0BankApy } from "./p0";
 import { StrategyConfig, strategyRegistry } from "./strategy-config";
 import type { LendingOpportunity } from "./lending-playbook";
 
@@ -11,6 +12,7 @@ import type { LendingOpportunity } from "./lending-playbook";
  *   kaminoVault -> Kamino /kvaults/{address}/metrics (apy)
  *   jupiterLend -> Jupiter Lend /earn/tokens (totalRate, bps)
  *   perena      -> Perena /usdstar/apy (7d); TVL = USD* supply x price
+ *   p0          -> marginfi bank on-chain cache (spot lending rate); TVL = bank deposits
  */
 
 const KAMINO_API_URL = "https://api.kamino.finance";
@@ -21,6 +23,7 @@ const PROVIDERS: Record<string, { id: string; name: string }> = {
   kaminoVault: { id: "kamino", name: "Kamino" },
   jupiterLend: { id: "jupiter", name: "Jupiter" },
   perena: { id: "perena", name: "Perena" },
+  p0: { id: "p0", name: "P0" },
 };
 
 async function getJson(url: string): Promise<any> {
@@ -47,6 +50,10 @@ async function fetchApy(s: StrategyConfig): Promise<{ apy: number; tvlUsd: numbe
       new Connection(config.rpcUrl, "confirmed").getTokenSupply(USDSTAR_MINT),
     ]);
     return { apy, tvlUsd: Number(supply.value.uiAmount) * Number(price) };
+  }
+  if (s.type === "p0") {
+    const { apy, totalDepositsUsdc } = await getP0BankApy(new Connection(config.rpcUrl, "confirmed"));
+    return { apy, tvlUsd: totalDepositsUsdc };
   }
   throw new Error(`no APY source for strategy type ${s.type}`);
 }

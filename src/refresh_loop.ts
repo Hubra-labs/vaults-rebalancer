@@ -18,6 +18,7 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import { createDepositJLendStrategyIx } from "./lib/jupiter";
 import { createDepositPerenaStrategyIx } from "./lib/perena";
+import { createDepositP0StrategyIx } from "./lib/p0";
 import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
 import { strategyRegistry } from "./lib/strategy-config";
@@ -193,6 +194,14 @@ async function refreshDepositStrategies(
           break;
         case "perena":
           await createDepositPerenaStrategyIx(
+            voltrClient,
+            toAddress(manager.publicKey),
+            new BN(0),
+            transactionIxs
+          );
+          break;
+        case "p0":
+          await createDepositP0StrategyIx(
             voltrClient,
             toAddress(manager.publicKey),
             new BN(0),

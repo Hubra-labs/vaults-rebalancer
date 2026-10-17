@@ -172,6 +172,8 @@ Loaded from `strategies.json` at boot. Addresses for Jupiter are auto-derived fr
 | `kaminoVault` | Kamino Vaults | Explicit in config | Yes (by vault address) |
 | `jupiterLend` | Jupiter Lend | PDA from asset mint | Yes (by provider id) |
 | `kaminoMarket` | Kamino Markets | Explicit in config | No |
+| `perena` | Perena USD* (own adaptor) | Perena vault, explicit | Yes (Perena API, 7d APY) |
+| `p0` | P0 / marginfi v2 bank (own adaptor) | Bank, explicit | Yes (bank's on-chain spot lending rate) |
 
 Strategies not matchable in the API never win — their funds get withdrawn to the winner.
 

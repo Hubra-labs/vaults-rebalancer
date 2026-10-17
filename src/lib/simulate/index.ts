@@ -24,6 +24,7 @@ import {
   chooseTarget,
 } from "../yield-api";
 import { PERENA_VAULT_ASSET_ATA } from "../perena";
+import { P0_USDC_LIQUIDITY_VAULT } from "../p0";
 import { logger } from "../utils";
 import { workerMetrics } from "../metrics-bridge";
 
@@ -143,6 +144,12 @@ export async function getCurrentAndTargetAllocation(
   // Perena withdrawals are paid from its vault's USDC balance
   for (const s of strategyRegistry.strategies.filter((s) => s.type === "perena")) {
     const bal = await connection.getTokenAccountBalance(PERENA_VAULT_ASSET_ATA);
+    kvaultLiquidityMap.set(s.id, new BN(bal.value.amount).muln(98).divn(100));
+  }
+
+  // P0 withdrawals are paid from the bank's free liquidity (deposits not lent out)
+  for (const s of strategyRegistry.strategies.filter((s) => s.type === "p0")) {
+    const bal = await connection.getTokenAccountBalance(P0_USDC_LIQUIDITY_VAULT);
     kvaultLiquidityMap.set(s.id, new BN(bal.value.amount).muln(98).divn(100));
   }
 

@@ -40,6 +40,11 @@ import {
   getPerenaPositionValue,
   PERENA_FULL_EXIT_HAIRCUT_BPS,
 } from "./lib/perena";
+import {
+  createDepositP0StrategyIx,
+  createWithdrawP0StrategyIx,
+  getP0PositionValue,
+} from "./lib/p0";
 import { getConnectionManager } from "./lib/connection";
 import { toAddress, toPublicKey } from "./lib/convert";
 import { strategyRegistry } from "./lib/strategy-config";
@@ -483,6 +488,14 @@ async function executeRebalance(
           depositIxs
         );
         break;
+      case "p0":
+        await createDepositP0StrategyIx(
+          voltrClient,
+          toAddress(manager.publicKey),
+          depositAmount,
+          depositIxs
+        );
+        break;
       default:
         logger.warn(`Unknown strategy type "${allocation.strategyType}" for "${allocation.strategyId}", skipping deposit`);
         break;
@@ -555,6 +568,18 @@ async function executeRebalance(
           voltrClient,
           toAddress(manager.publicKey),
           perenaExitAmount && allocation === perenaFullExit ? perenaExitAmount : withdrawAmount,
+          transactionIxs
+        );
+        break;
+      case "p0":
+        // The adaptor withdraws an exact amount, so a full exit asks for the
+        // live position value (receipt value + interest since), not MAX.
+        await createWithdrawP0StrategyIx(
+          voltrClient,
+          toAddress(manager.publicKey),
+          newAllocations[originalIndex].positionValue.isZero()
+            ? await getP0PositionValue(voltrClient, connection)
+            : withdrawAmount,
           transactionIxs
         );
         break;
