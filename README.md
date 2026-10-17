@@ -33,7 +33,7 @@ Strategies with locked amounts exceeding the equal share keep their locked amoun
 | `perena` | Perena USD* (our unified adaptor; address = Perena vault) |
 | `p0` | P0 / marginfi v2 lending bank (our unified adaptor; address = bank) |
 
-The `perena` and `p0` strategies go through our own Voltr adaptor (`/root/perena-adaptor`). One-time setup per vault and protocol: `ENV_FILE=.env-usdc npx tsx scripts/setup-hubra-adaptor.ts` (dry-run; `--send` to submit).
+The `perena` and `p0` strategies go through our own Voltr adaptor ([Hubra-labs/hubra-usdc-adaptor](https://github.com/Hubra-labs/hubra-usdc-adaptor), checked out at `/root/hubra-usdc-adaptor`). One-time setup per vault and protocol: `ENV_FILE=.env-usdc npx tsx scripts/setup-hubra-adaptor.ts` (dry-run; `--send` to submit).
 
 Configure strategies in `strategies.json`. Jupiter Lend strategy addresses are derived automatically from on-chain PDAs using the vault's `ASSET_MINT_ADDRESS`.
 

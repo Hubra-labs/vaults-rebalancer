@@ -13,7 +13,7 @@ import { Address } from "@solana/kit";
 import { config } from "../config";
 import { toPublicKey } from "./convert";
 
-// Our unified USDC adaptor (perena-adaptor/, hubra_usdc_adaptor). The adaptor must be
+// Our unified USDC adaptor (Hubra-labs/hubra-usdc-adaptor). The adaptor must be
 // added to the vault and the strategy initialized (scripts/setup-hubra-adaptor.ts)
 // before any of this can execute.
 export const PERENA_ADAPTOR_PROGRAM_ID = new PublicKey(

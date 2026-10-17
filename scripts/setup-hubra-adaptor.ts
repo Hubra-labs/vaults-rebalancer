@@ -1,6 +1,6 @@
 /**
  * One-time setup for the strategies that run through our unified adaptor
- * (raRnoKWoRcon9dqxvAhtiPyQHgikpcu1g9tXeb9jPGT, /root/perena-adaptor).
+ * (raRnoKWoRcon9dqxvAhtiPyQHgikpcu1g9tXeb9jPGT, Hubra-labs/hubra-usdc-adaptor).
  *
  * Step 1 (vault admin signs, once per vault): add_adaptor(vault, adaptor).
  *   Voltr then blocks the adaptor for a cooldown: initialize_strategy and

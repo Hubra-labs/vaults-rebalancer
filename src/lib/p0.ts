@@ -7,7 +7,7 @@ import { toPublicKey } from "./convert";
 import { PERENA_ADAPTOR_PROGRAM_ID } from "./perena";
 
 // P0 (Project 0, formerly marginfi v2) USDC bank via our unified adaptor
-// (perena-adaptor/, src/protocols/p0.rs). Strategy id = the marginfi bank.
+// (Hubra-labs/hubra-usdc-adaptor, src/protocols/p0.rs). Strategy id = the marginfi bank.
 export const P0_ADAPTOR_PROGRAM_ID = PERENA_ADAPTOR_PROGRAM_ID;
 
 export const MARGINFI_PROGRAM_ID = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
