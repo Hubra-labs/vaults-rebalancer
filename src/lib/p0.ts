@@ -1,4 +1,4 @@
-import { AccountMeta, Connection, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, TransactionInstruction } from "@solana/web3.js";
+import { AccountMeta, Connection, PublicKey, SystemProgram, SYSVAR_INSTRUCTIONS_PUBKEY, TransactionInstruction } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { VoltrClient } from "@voltr/vault-sdk";
 import { Address } from "@solana/kit";
@@ -16,6 +16,11 @@ export const P0_USDC_BANK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4ur
 export const P0_USDC_LIQUIDITY_VAULT = new PublicKey("7jaiZR5Sk8hdYN9MxTpczTcwbWpb5WEoxSANuUwveuat");
 // Read by marginfi's withdraw health check; it validates it against the bank config.
 export const P0_USDC_ORACLE = new PublicKey("6HAuqASbHEh4w4REJEUUUCginTLfj1kwCh215ZLtMkrT");
+
+// marginfi closes empty accounts idle > 60 days (permissionless). The adaptor's
+// next deposit re-opens ours, paying ~0.0124 SOL rent from the strategy
+// authority PDA, so keep that PDA funded (scripts/setup-hubra-adaptor.ts).
+export const P0_STRATEGY_AUTH_FUND_LAMPORTS = 50_000_000;
 
 // Unified adaptor discriminators (sha256("global:<name>")[0..8]).
 export const INITIALIZE_P0_DISCRIMINATOR = Buffer.from([50, 253, 153, 132, 220, 23, 28, 4]); // initialize_p0
@@ -72,6 +77,9 @@ function p0OperateRemainingAccounts(strategyAuth: PublicKey): AccountMeta[] {
     { pubkey: P0_USDC_LIQUIDITY_VAULT, isSigner: false, isWritable: true },
     { pubkey: liquidityVaultAuth, isSigner: false, isWritable: false },
     { pubkey: P0_USDC_ORACLE, isSigner: false, isWritable: false },
+    // only used when a deposit re-opens a closed marginfi account
+    { pubkey: SYSVAR_INSTRUCTIONS_PUBKEY, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
 }
 

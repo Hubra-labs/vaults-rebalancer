@@ -8,7 +8,9 @@
  *   2 past the one add_adaptor ran in (~2 days).
  * Step 2 (manager signs, per protocol): create the strategy authority's USDC
  *   ATA (Voltr doesn't, and the first deposit needs it) + initialize_strategy
- *   with that protocol's initialize_<p> discriminator.
+ *   with that protocol's initialize_<p> discriminator. P0 also keeps its
+ *   strategy authority PDA funded with SOL (rent for re-opening the marginfi
+ *   account if marginfi closes it); re-run any time to top it up.
  *
  * Dry-run by default: simulates every pending step without signatures. Without
  * an admin key, --send prints step 1 as an unsigned tx for the admin wallet.
@@ -25,6 +27,7 @@ import {
   Keypair,
   PublicKey,
   sendAndConfirmTransaction,
+  SystemProgram,
   Transaction,
   TransactionInstruction,
   TransactionMessage,
@@ -46,12 +49,19 @@ import {
   INITIALIZE_PERENA_DISCRIMINATOR,
 } from "../src/lib/perena";
 // env (.env + ENV_FILE overrides) is loaded by src/config, imported via these libs
-import { INITIALIZE_P0_DISCRIMINATOR, P0_USDC_BANK, p0InitializeRemainingAccounts } from "../src/lib/p0";
+import {
+  INITIALIZE_P0_DISCRIMINATOR,
+  P0_STRATEGY_AUTH_FUND_LAMPORTS,
+  P0_USDC_BANK,
+  p0InitializeRemainingAccounts,
+} from "../src/lib/p0";
 
 interface Protocol {
   strategy: PublicKey;
   discriminator: Buffer;
   remainingAccounts: (strategyAuth: PublicKey) => AccountMeta[];
+  /** SOL the strategy authority PDA must hold (topped up below half of it). */
+  fundStrategyAuthLamports?: number;
 }
 
 const PROTOCOLS: Record<string, Protocol> = {
@@ -73,6 +83,7 @@ const PROTOCOLS: Record<string, Protocol> = {
     strategy: P0_USDC_BANK,
     discriminator: INITIALIZE_P0_DISCRIMINATOR,
     remainingAccounts: p0InitializeRemainingAccounts,
+    fundStrategyAuthLamports: P0_STRATEGY_AUTH_FUND_LAMPORTS,
   },
 };
 
@@ -156,11 +167,24 @@ const main = async () => {
 
   for (const name of selected) {
     const p = PROTOCOLS[name];
+    const { vaultStrategyAuth } = client.findVaultStrategyAddresses(vault, p.strategy);
+    if (p.fundStrategyAuthLamports) {
+      const balance = await connection.getBalance(vaultStrategyAuth);
+      const topUp = p.fundStrategyAuthLamports - balance;
+      if (balance >= p.fundStrategyAuthLamports / 2) {
+        console.log(`${name}: strategy auth ${vaultStrategyAuth.toBase58()} holds ${balance / 1e9} SOL`);
+      } else if (!managerKp) {
+        console.log(`${name}: strategy auth ${vaultStrategyAuth.toBase58()} holds ${balance / 1e9} SOL — --send tops it up by ${topUp / 1e9} SOL`);
+      } else {
+        const fundIx = SystemProgram.transfer({ fromPubkey: manager, toPubkey: vaultStrategyAuth, lamports: topUp });
+        const sig = await sendAndConfirmTransaction(connection, new Transaction().add(fundIx), [managerKp]);
+        console.log(`${name}: funded strategy auth ${vaultStrategyAuth.toBase58()} with ${topUp / 1e9} SOL: ${sig}`);
+      }
+    }
     if (await connection.getAccountInfo(client.findStrategyInitReceipt(vault, p.strategy))) {
       console.log(`${name}: already initialized (strategy ${p.strategy.toBase58()})`);
       continue;
     }
-    const { vaultStrategyAuth } = client.findVaultStrategyAddresses(vault, p.strategy);
     const assetAta = getAssociatedTokenAddressSync(assetMint, vaultStrategyAuth, true, TOKEN_PROGRAM_ID);
     const ixs = [
       createAssociatedTokenAccountIdempotentInstruction(manager, assetAta, vaultStrategyAuth, assetMint, TOKEN_PROGRAM_ID),
